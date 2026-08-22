@@ -1,0 +1,122 @@
+[
+  {
+    "text": "lnsumos Patagon1a SRL",
+    "bbox": [
+      58,
+      41,
+      220,
+      22
+    ],
+    "confidence": 0.71
+  },
+  {
+    "text": "CUlT 3O-71455892-4",
+    "bbox": [
+      58,
+      67,
+      220,
+      22
+    ],
+    "confidence": 0.63
+  },
+  {
+    "text": "FACTURA A N FA-2O26-OO417",
+    "bbox": [
+      58,
+      101,
+      220,
+      22
+    ],
+    "confidence": 0.58
+  },
+  {
+    "text": "Fecha de emision: O3/O8/2026",
+    "bbox": [
+      58,
+      127,
+      220,
+      22
+    ],
+    "confidence": 0.66
+  },
+  {
+    "text": "Vencimiento: O2/O9/2026",
+    "bbox": [
+      58,
+      151,
+      220,
+      22
+    ],
+    "confidence": 0.64
+  },
+  {
+    "text": "Moneda ARS",
+    "bbox": [
+      58,
+      175,
+      220,
+      22
+    ],
+    "confidence": 0.8
+  },
+  {
+    "text": "Resma A4 8Og x1O 12 4.85O,OO 58.2OO,OO",
+    "bbox": [
+      58,
+      231,
+      220,
+      22
+    ],
+    "confidence": 0.52
+  },
+  {
+    "text": "Toner HP 26A 2 121.5OO,OO 243.OOO,OO",
+    "bbox": [
+      58,
+      257,
+      220,
+      22
+    ],
+    "confidence": 0.55
+  },
+  {
+    "text": "Cinta embalaje 48mm 24 1.975,5O 47.412,OO",
+    "bbox": [
+      58,
+      283,
+      220,
+      22
+    ],
+    "confidence": 0.54
+  },
+  {
+    "text": "Subtotal 348.612,OO",
+    "bbox": [
+      58,
+      331,
+      220,
+      22
+    ],
+    "confidence": 0.61
+  },
+  {
+    "text": "IVA 21% 73.2O8,52",
+    "bbox": [
+      58,
+      355,
+      220,
+      22
+    ],
+    "confidence": 0.59
+  },
+  {
+    "text": "TOTAL 421.82O,52",
+    "bbox": [
+      58,
+      381,
+      220,
+      22
+    ],
+    "confidence": 0.68
+  }
+]

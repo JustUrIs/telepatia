@@ -1,0 +1,37 @@
+[
+  {
+    "date": "2026-09-02",
+    "description": "Transferencia a Insumos Patagonia SRL, FA-2026-00417",
+    "amount": 421820.52,
+    "currency": "ARS",
+    "ref": "TRF-99812"
+  },
+  {
+    "date": "2026-08-28",
+    "description": "Pago servicios",
+    "amount": -15400,
+    "currency": "ARS",
+    "ref": "SRV-1120"
+  },
+  {
+    "date": "2026-07-15",
+    "description": "Compra \"Libreria Sur\" insumos",
+    "amount": 47412,
+    "currency": "ARS",
+    "ref": "CMP-3301"
+  },
+  {
+    "date": "2026-09-02",
+    "description": "Duplicado mismo monto",
+    "amount": 421820.52,
+    "currency": "ARS",
+    "ref": "TRF-99813"
+  },
+  {
+    "date": "2026-06-30",
+    "description": "Sin salto final",
+    "amount": 1000,
+    "currency": "ARS",
+    "ref": "LAST-1"
+  }
+]

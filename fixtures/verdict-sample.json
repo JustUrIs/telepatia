@@ -1,0 +1,127 @@
+{
+  "verdict": "review",
+  "checks": [
+    {
+      "id": "items_sum_subtotal",
+      "ok": true,
+      "expected": 348612,
+      "actual": 348612,
+      "evidence": [
+        {
+          "value": 348612,
+          "bbox": [
+            60,
+            380,
+            220,
+            22
+          ],
+          "confidence": 0.99
+        }
+      ]
+    },
+    {
+      "id": "subtotal_plus_tax_equals_total",
+      "ok": true,
+      "expected": 421820.52,
+      "actual": 421820.52,
+      "evidence": [
+        {
+          "value": 421820.52,
+          "bbox": [
+            60,
+            380,
+            220,
+            22
+          ],
+          "confidence": 0.99
+        }
+      ]
+    },
+    {
+      "id": "tax_rate_plausible",
+      "ok": true,
+      "expected": "0..0.30",
+      "actual": 0.21,
+      "evidence": [
+        {
+          "value": 0.21,
+          "bbox": [
+            60,
+            380,
+            220,
+            22
+          ],
+          "confidence": 0.99
+        }
+      ]
+    },
+    {
+      "id": "currency_consistent",
+      "ok": true,
+      "expected": "ARS",
+      "actual": "ARS",
+      "evidence": [
+        {
+          "value": "ARS",
+          "bbox": [
+            60,
+            380,
+            220,
+            22
+          ],
+          "confidence": 0.99
+        }
+      ]
+    },
+    {
+      "id": "dates_ordered",
+      "ok": true,
+      "expected": "2026-08-03<=2026-09-02",
+      "actual": true,
+      "evidence": [
+        {
+          "value": "2026-09-02",
+          "bbox": [
+            60,
+            380,
+            220,
+            22
+          ],
+          "confidence": 0.99
+        }
+      ]
+    },
+    {
+      "id": "issue_date_not_future",
+      "ok": false,
+      "expected": "issueDate<=hoy",
+      "actual": "2026-08-03",
+      "evidence": [
+        {
+          "value": "2026-08-03",
+          "bbox": [
+            60,
+            380,
+            220,
+            22
+          ],
+          "confidence": 0.99
+        }
+      ]
+    }
+  ],
+  "ungrounded": [
+    {
+      "key": "supplierTaxId",
+      "value": "30-99999999-9",
+      "reason": "no aparece en el texto del OCR"
+    }
+  ],
+  "matched": {
+    "date": "2026-09-02",
+    "description": "Transferencia a Insumos Patagonia SRL, FA-2026-00417",
+    "amount": 421820.52,
+    "currency": "ARS",
+    "ref": "TRF-99812"
+  }
+}

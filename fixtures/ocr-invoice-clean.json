@@ -1,0 +1,122 @@
+[
+  {
+    "text": "Insumos Patagonia SRL",
+    "bbox": [
+      60,
+      40,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "CUIT 30-71455892-4",
+    "bbox": [
+      60,
+      66,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "FACTURA A  N° FA-2026-00417",
+    "bbox": [
+      60,
+      100,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "Fecha de emision: 03/08/2026",
+    "bbox": [
+      60,
+      126,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "Vencimiento: 02/09/2026",
+    "bbox": [
+      60,
+      150,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "Moneda: ARS",
+    "bbox": [
+      60,
+      174,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "Resma A4 80g x10   12   4.850,00   58.200,00",
+    "bbox": [
+      60,
+      230,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "Toner HP 26A   2   121.500,00   243.000,00",
+    "bbox": [
+      60,
+      256,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "Cinta embalaje 48mm   24   1.975,50   47.412,00",
+    "bbox": [
+      60,
+      282,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "Subtotal   348.612,00",
+    "bbox": [
+      60,
+      330,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "IVA 21%   73.208,52",
+    "bbox": [
+      60,
+      354,
+      220,
+      22
+    ],
+    "confidence": 0.97
+  },
+  {
+    "text": "TOTAL   421.820,52",
+    "bbox": [
+      60,
+      380,
+      220,
+      22
+    ],
+    "confidence": 0.99
+  }
+]

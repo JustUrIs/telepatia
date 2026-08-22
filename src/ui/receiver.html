@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Telepatía — Receptor</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b0e14; --fg:#e6e6e6; --ok:#54ff7e; --bad:#ff5f5f; --warn:#ffd94a; }
+  body { margin:0; padding:1rem; background:var(--bg); color:var(--fg);
+         font:15px/1.5 ui-sans-serif, system-ui, sans-serif; }
+  h1 { font-size:1.1rem; margin:0 0 .75rem; }
+  video { width:100%; max-width:520px; border-radius:8px; background:#000; }
+  canvas { display:none; }
+  .track { height:8px; background:#1c2130; border-radius:4px; overflow:hidden; margin:.75rem 0 .35rem; }
+  .track > i { display:block; height:100%; width:0; background:var(--ok); transition:width .2s; }
+  #status { font-size:.9rem; opacity:.85; }
+  pre { background:#11141c; padding:.75rem; border-radius:8px; overflow-x:auto; font-size:.8rem; }
+</style>
+</head>
+<body>
+  <h1>Receptor óptico</h1>
+  <video id="video" playsinline muted></video>
+  <canvas id="grab"></canvas>
+  <div class="track"><i id="bar"></i></div>
+  <div id="status">Tocá empezar y apuntá la cámara a la pantalla emisora.</div>
+  <button id="start" type="button">Empezar</button>
+  <pre id="result"></pre>
+  <script type="module">
+    import { mount } from './receiver.js';
+    document.getElementById('start').addEventListener('click', () => {
+      void mount({
+        video: document.getElementById('video'),
+        canvas: document.getElementById('grab'),
+        bar: document.getElementById('bar'),
+        status: document.getElementById('status'),
+        result: document.getElementById('result'),
+        onDocument: ({ manifest, docIdHex }) =>
+          console.log('documento listo', docIdHex, manifest.name),
+      });
+    });
+  </script>
+</body>
+</html>
