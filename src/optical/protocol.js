@@ -8,7 +8,7 @@
 import { createHash } from 'node:crypto';
 import { deflateRawSync, inflateRawSync } from 'node:zlib';
 
-import { FAILURE_CODES } from '../shared/contract.js';
+import { FAILURE_CODES, docIdHex } from '../shared/contract.js';
 
 /** Magia del protocolo: los bytes ASCII de "AGP1" leídos como u32 big-endian. */
 export const MAGIC = 0x41475031;
@@ -308,6 +308,22 @@ export function readManifestFrame(frame) {
 }
 
 /**
+ * Frames que componen una vuelta completa del carrusel: el manifest, todos los
+ * chunks de datos, y una paridad por ventana. Es el número que T-09 reporta
+ * como `cycleFrames` para estimar cuánto tarda una vuelta.
+ *
+ * Ojo: no es cada cuánto se repite la emisión real, porque el manifest se
+ * reinyecta cada `MANIFEST_EVERY` frames por encima de este ciclo.
+ *
+ * @param {Manifest} manifest
+ * @returns {number}
+ */
+export function cycleFrames(manifest) {
+  const { total, parityWindow } = manifest;
+  return 1 + total + Math.ceil(total / parityWindow);
+}
+
+/**
  * Orden de emisión infinito.
  *
  * El manifest va primero y se reinyecta cada `MANIFEST_EVERY` frames: un
@@ -393,13 +409,23 @@ export class FrameDecoder {
     return Math.min(1, this.#chunks.size / this.#manifest.total);
   }
 
-  /** Vuelve al estado inicial, contadores incluidos. */
+  /**
+   * Descarta el documento en curso y vuelve a esperar uno nuevo.
+   *
+   * Los contadores de `stats` **sobreviven** deliberadamente: miden la calidad
+   * del canal óptico a lo largo de la sesión de escaneo, y si se reiniciaran en
+   * cada cambio de documento no servirían para diagnosticar nada en campo.
+   */
   reset() {
     this.#docId = null;
     this.#manifest = null;
     this.#chunks = new Map();
     this.#parity = new Map();
     this.#unsupportedVersion = null;
+  }
+
+  /** Pone los contadores en cero. Separado de `reset()` a propósito. */
+  resetStats() {
     this.#stats = { accepted: 0, duplicate: 0, foreign: 0, recovered: 0 };
   }
 
@@ -431,6 +457,14 @@ export class FrameDecoder {
       this.#docId = frame.docId;
     }
 
+    // Un frame trae su PROPIO `total`, así que uno espurio con index=7/total=8
+    // entraría en un stream de 3 chunks y dejaría `complete` en true con un
+    // chunk ausente. Una vez que hay manifest, él manda sobre lo que dice el frame.
+    if (this.#manifest !== null && frame.kind !== KIND.MANIFEST && !this.#matchesManifest(frame)) {
+      this.#stats.foreign++;
+      return false;
+    }
+
     switch (frame.kind) {
       case KIND.MANIFEST: return this.#pushManifest(frame);
       case KIND.DATA: return this.#pushData(frame);
@@ -439,6 +473,33 @@ export class FrameDecoder {
         this.#stats.foreign++;
         return false;
     }
+  }
+
+  /**
+   * Largo de payload que el manifest obliga para un frame de datos o paridad.
+   *
+   * @param {number} kind @param {number} index
+   * @returns {number}
+   */
+  #expectedPayloadLen(kind, index) {
+    const { total, chunkSize, bodyLength } = this.#manifest;
+    if (kind === KIND.PARITY) return chunkSize;
+    return index === total - 1 ? bodyLength - index * chunkSize : chunkSize;
+  }
+
+  /** Cantidad de ventanas de paridad que el manifest declara. */
+  #parityWindows() {
+    const { total, parityWindow } = this.#manifest;
+    return Math.ceil(total / parityWindow);
+  }
+
+  /** @param {Frame} frame */
+  #matchesManifest(frame) {
+    const manifest = this.#manifest;
+    if (frame.total !== manifest.total) return false;
+    const limite = frame.kind === KIND.PARITY ? this.#parityWindows() : manifest.total;
+    if (frame.index >= limite) return false;
+    return frame.payload.length === this.#expectedPayloadLen(frame.kind, frame.index);
   }
 
   /** @param {Frame} frame */
@@ -459,16 +520,31 @@ export class FrameDecoder {
       if (typeof manifest.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(manifest.sha256)) {
         throw new TypeError('manifest.sha256 inválido');
       }
+      // El docId son los primeros 4 bytes de ese mismo sha256. Sin este cruce,
+      // un manifest forjado que llega primero gana, y el legítimo entra después
+      // y se descarta como duplicado.
+      if (manifest.sha256.slice(0, 8) !== docIdHex(frame.docId)) {
+        throw new TypeError('el manifest no corresponde al docId que lo transporta');
+      }
     } catch {
       this.#stats.foreign++;
       return false;
     }
 
     this.#manifest = manifest;
-    // Un chunk guardado antes del manifest puede caer fuera del total real.
-    for (const index of [...this.#chunks.keys()]) {
-      if (index >= manifest.total) this.#chunks.delete(index);
+
+    // Lo guardado antes del manifest no pasó por el cruce: revalidarlo ahora.
+    for (const [index, payload] of [...this.#chunks]) {
+      const ok = index < manifest.total
+        && payload.length === this.#expectedPayloadLen(KIND.DATA, index);
+      if (!ok) this.#chunks.delete(index);
     }
+    for (const [w, payload] of [...this.#parity]) {
+      if (w >= this.#parityWindows() || payload.length !== manifest.chunkSize) {
+        this.#parity.delete(w);
+      }
+    }
+
     this.#stats.accepted++;
     this.#recover();
     return true;

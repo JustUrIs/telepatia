@@ -10,6 +10,9 @@ import {
 
 const FIXTURE = readFileSync('fixtures/document-small.bin');
 
+/** El fixture da 40 chunks exactos: recortarlo deja una cola más corta que chunkSize. */
+const COLA_CORTA = FIXTURE.subarray(0, 35500);
+
 /** Barajado determinista (LCG): el test tiene que fallar siempre igual. */
 function shuffle(arr, seed = 0x2545f491) {
   const out = [...arr];
@@ -72,7 +75,7 @@ test('omitiendo un chunk por ventana, la paridad lo recupera', () => {
 });
 
 test('recupera tambien el ultimo chunk, que es mas corto que chunkSize', () => {
-  const enc = encodeDocument(FIXTURE, { compress: false });
+  const enc = encodeDocument(COLA_CORTA, { compress: false });
   const { total, chunkSize, bodyLength } = enc.manifest;
   const ultimo = total - 1;
   const largoReal = bodyLength - ultimo * chunkSize;
@@ -85,7 +88,8 @@ test('recupera tambien el ultimo chunk, que es mas corto que chunkSize', () => {
 
   assert.equal(dec.stats.recovered, 1);
   assert.equal(dec.complete, true);
-  assert.deepEqual(Buffer.from(dec.assemble().document), FIXTURE);
+  assert.deepEqual(Buffer.from(dec.assemble().document), COLA_CORTA);
+  assert.equal(dec.assemble().document.length, COLA_CORTA.length);
 });
 
 test('dos faltantes en la misma ventana no se recuperan', () => {
@@ -210,18 +214,107 @@ test('progress va de 0 a 1 y es monotono', () => {
   assert.equal(dec.progress, 1);
 });
 
-test('reset() deja el decoder como nuevo', () => {
+test('reset() descarta el documento pero los contadores sobreviven', () => {
   const enc = encodeDocument(FIXTURE, { compress: false });
   const dec = new FrameDecoder();
   for (const raw of todos(enc)) dec.push(raw);
   assert.equal(dec.complete, true);
+  const antes = dec.stats;
 
   dec.reset();
   assert.equal(dec.complete, false);
   assert.equal(dec.progress, 0);
   assert.equal(dec.docId, null);
-  assert.deepEqual(dec.stats, { accepted: 0, duplicate: 0, foreign: 0, recovered: 0 });
+  assert.equal(dec.manifest, null);
   assert.throws(() => dec.assemble());
+  assert.deepEqual(dec.stats, antes, 'stats mide el canal, no el documento');
+
+  dec.resetStats();
+  assert.deepEqual(dec.stats, { accepted: 0, duplicate: 0, foreign: 0, recovered: 0 });
+});
+
+test('cambiar de documento tampoco borra los contadores del canal', () => {
+  const a = encodeDocument(FIXTURE, { compress: false });
+  const b = encodeDocument(Buffer.from('otro documento entero', 'utf8'), { compress: false });
+
+  const dec = new FrameDecoder();
+  dec.push(Buffer.from('basura que no es AGP1'));
+  dec.push(a.frames.manifest);
+  for (const raw of a.frames.data.slice(0, 10)) dec.push(raw);
+  const foreignAntes = dec.stats.foreign;
+  const acceptedAntes = dec.stats.accepted;
+
+  dec.push(b.frames.manifest);
+  assert.equal(dec.docId, b.docId);
+  assert.equal(dec.stats.foreign, foreignAntes, 'el cambio de documento no borra foreign');
+  assert.ok(dec.stats.accepted > acceptedAntes, 'y sigue sumando sobre lo anterior');
+});
+
+test('un frame espurio con su propio total no puede completar el documento', () => {
+  const corto = encodeDocument(Buffer.alloc(2400, 3), { compress: false, chunkSize: 900 });
+  assert.equal(corto.manifest.total, 3);
+
+  const dec = new FrameDecoder();
+  dec.push(corto.frames.manifest);
+  dec.push(corto.frames.data[0]);
+  dec.push(corto.frames.data[1]);
+
+  // index=7/total=8 con el docId correcto: sin cruce contra el manifest, entraría.
+  dec.push(packFrame(KIND.DATA, corto.docId, 7, 8, Buffer.alloc(900)));
+  assert.equal(dec.stats.foreign, 1);
+  assert.equal(dec.complete, false, 'un chunk espurio no puede dar por completo el documento');
+
+  // Y uno con el index correcto pero el total mentido tampoco pasa.
+  dec.push(packFrame(KIND.DATA, corto.docId, 2, 8, Buffer.alloc(600)));
+  assert.equal(dec.stats.foreign, 2);
+  assert.equal(dec.complete, false);
+
+  dec.push(corto.frames.data[2]);
+  assert.equal(dec.complete, true);
+  assert.deepEqual(Buffer.from(dec.assemble().document), Buffer.alloc(2400, 3));
+});
+
+test('un chunk con largo distinto al que el manifest obliga se descarta', () => {
+  const enc = encodeDocument(FIXTURE, { compress: false });
+  const { docId, manifest } = enc;
+
+  const dec = new FrameDecoder();
+  dec.push(enc.frames.manifest);
+  dec.push(packFrame(KIND.DATA, docId, 0, manifest.total, Buffer.alloc(899)));
+  dec.push(packFrame(KIND.PARITY, docId, 0, manifest.total, Buffer.alloc(10)));
+  assert.equal(dec.stats.foreign, 2);
+  assert.equal(dec.progress, 0);
+});
+
+test('un manifest forjado que no case con su docId se rechaza', () => {
+  const enc = encodeDocument(FIXTURE, { compress: false });
+  const legitimo = parseFrame(enc.frames.manifest);
+  const forjado = JSON.parse(legitimo.payload.toString('utf8'));
+  forjado.sha256 = 'f'.repeat(64); // manifest de otro documento, docId ajeno
+
+  const dec = new FrameDecoder();
+  dec.push(packFrame(KIND.MANIFEST, enc.docId, 0, forjado.total, Buffer.from(JSON.stringify(forjado))));
+  assert.equal(dec.manifest, null, 'el manifest forjado no debe quedar guardado');
+  assert.equal(dec.stats.foreign, 1);
+
+  // Y el legítimo, que llega después, tiene que entrar igual.
+  dec.push(enc.frames.manifest);
+  assert.equal(dec.manifest.sha256, enc.manifest.sha256);
+  for (const raw of enc.frames.data) dec.push(raw);
+  assert.deepEqual(Buffer.from(dec.assemble().document), FIXTURE);
+});
+
+test('los chunks guardados antes del manifest se revalidan cuando llega', () => {
+  const enc = encodeDocument(FIXTURE, { compress: false });
+  const { docId, manifest } = enc;
+
+  const dec = new FrameDecoder();
+  dec.push(packFrame(KIND.DATA, docId, 0, manifest.total, Buffer.alloc(500))); // largo mentido
+  dec.push(enc.frames.data[1]);
+  assert.equal(dec.stats.accepted, 2, 'sin manifest todavía no se puede cruzar nada');
+
+  dec.push(enc.frames.manifest);
+  assert.equal(dec.progress, 1 / manifest.total, 'el chunk inválido se descartó al validar');
 });
 
 test('assemble() antes de tiempo lanza, y stats es una copia', () => {

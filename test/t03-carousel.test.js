@@ -3,12 +3,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import {
-  KIND, MANIFEST_EVERY, parseFrame, encodeDocument, carousel,
+  KIND, MANIFEST_EVERY, parseFrame, encodeDocument, carousel, cycleFrames,
 } from '../src/optical/protocol.js';
 
 const FIXTURE = readFileSync('fixtures/document-small.bin');
 
-/** 46 frames de datos + 6 de paridad: un ciclo entra holgado en 200 emisiones. */
+/** El fixture da 40 chunks exactos: recortarlo deja una cola más corta que chunkSize. */
+const COLA_CORTA = FIXTURE.subarray(0, 35500);
+
+/** 40 frames de datos + 5 de paridad: un ciclo entra holgado en 200 emisiones. */
 const encoded = () => encodeDocument(FIXTURE, { compress: false, chunkSize: 900 });
 
 /** Toma n frames del generador infinito, ya parseados. */
@@ -106,8 +109,17 @@ test('la paridad de la ventana 0 es el XOR de sus chunks rellenados a chunkSize'
   assert.deepEqual(paridad, esperado);
 });
 
+test('cycleFrames es 1 + total + ceil(total / parityWindow)', () => {
+  const enc = encoded();
+  const { total, parityWindow } = enc.manifest;
+  assert.equal(total, 40);
+  assert.equal(cycleFrames(enc.manifest), 1 + 40 + 5);
+  assert.equal(cycleFrames(enc.manifest), 1 + total + enc.frames.parity.length);
+  assert.equal(Math.ceil(total / parityWindow), enc.frames.parity.length);
+});
+
 test('la paridad de la última ventana rellena el chunk corto con ceros', () => {
-  const enc = encodeDocument(FIXTURE, { compress: false, chunkSize: 900 });
+  const enc = encodeDocument(COLA_CORTA, { compress: false, chunkSize: 900 });
   const { chunkSize, parityWindow, total } = enc.manifest;
   const w = enc.frames.parity.length - 1;
 

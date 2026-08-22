@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createHash, randomBytes } from 'node:crypto';
 import { inflateRawSync } from 'node:zlib';
 
+import { docIdHex } from '../src/shared/contract.js';
 import { KIND, HEADER_LEN, parseFrame, encodeDocument } from '../src/optical/protocol.js';
 
 const FIXTURE = readFileSync('fixtures/document-small.bin');
@@ -80,6 +81,24 @@ test('docId son los primeros 4 bytes del SHA-256 del documento EN CLARO', () => 
 
   assert.equal(conComp.docId, esperado);
   assert.equal(sinComp.docId, esperado, 'comprimir no puede cambiar el docId');
+});
+
+test('invariante del contrato: sha256.slice(0,8) === docIdHex(docId)', () => {
+  for (const compress of [false, true]) {
+    const { docId, manifest } = encodeDocument(FIXTURE, { compress });
+    assert.equal(manifest.sha256.slice(0, 8), docIdHex(docId));
+  }
+  const { docId, manifest } = encodeDocument(Buffer.from('otra cosa', 'utf8'));
+  assert.equal(manifest.sha256.slice(0, 8), docIdHex(docId));
+});
+
+test('el manifest declara los formatos que fija la spec', () => {
+  const { manifest } = encodeDocument(FIXTURE, { compress: false });
+  assert.equal(manifest.v, 1);
+  assert.match(manifest.sha256, /^[0-9a-f]{64}$/);
+  assert.equal(manifest.sha256, manifest.sha256.toLowerCase());
+  assert.ok([0, 1].includes(manifest.compression));
+  assert.equal(manifest.length, FIXTURE.length);
 });
 
 test('todos los frames de datos parsean, con índice correlativo y docId del documento', () => {
