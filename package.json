@@ -1,0 +1,20 @@
+{
+  "name": "telepatia",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Auditoría air-gapped de facturas: transporte óptico QR + conciliación local con QVAC.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test 'test/*.test.js'",
+    "test:model": "node --test 'test-model/*.test.js'",
+    "test:all": "node --test"
+  },
+  "dependencies": {
+    "jsqr": "^1.4.0",
+    "qrcode": "^1.5.4"
+  },
+  "optionalDependencies": {
+    "@qvac/sdk": "^0.17.1"
+  }
+}

@@ -1,0 +1,8 @@
+﻿Fecha;Concepto;Importe;Moneda;Referencia
+02/09/2026;"Transferencia a Insumos Patagonia SRL, FA-2026-00417";421.820,52;ARS;TRF-99812
+2026-08-28;Pago servicios;(15.400,00);ARS;SRV-1120
+15-07-26;"Compra ""Libreria Sur"" insumos";47.412,00;ARS;CMP-3301
+
+no-es-una-fecha;Fila basura;abc;ARS;X
+2026-09-02;Duplicado mismo monto;421.820,52;ARS;TRF-99813
+2026-06-30;Sin salto final;1.000,00;ARS;LAST-1
