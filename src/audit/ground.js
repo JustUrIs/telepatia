@@ -61,14 +61,28 @@ export function isInstructionBlock(block) {
  * fuera del conjunto de anclas.
  */
 export function partitionBlocks(blocks) {
+  const text = (i) => String(blocks[i]?.text ?? '');
+  const matches = (from, len) => {
+    const joined = [];
+    for (let k = from; k < from + len; k++) joined.push(text(k));
+    const s = joined.join(' ');
+    return INSTRUCTION_MARKERS.some((re) => re.test(s));
+  };
+
   const flagged = new Set();
   for (let i = 0; i < blocks.length; i++) {
     for (let w = 1; w <= MARKER_WINDOW && i + w <= blocks.length; w++) {
-      const slice = blocks.slice(i, i + w);
-      const joined = slice.map((b) => String(b?.text ?? '')).join(' ');
-      if (INSTRUCTION_MARKERS.some((re) => re.test(joined))) {
-        for (let k = i; k < i + w; k++) flagged.add(k);
-      }
+      if (!matches(i, w)) continue;
+      // ENCOGER AL MÍNIMO. Sin esto la ventana arrastra vecinos legítimos: en la
+      // factura de prueba, "Moneda: ARS" quedaba marcado como sospechoso solo
+      // por estar pegado a la inyección, y con él se iban los renglones de
+      // detalle. Un filtro que se come datos buenos es peor que no tenerlo.
+      let from = i;
+      let len = w;
+      while (len > 1 && matches(from + 1, len - 1)) { from++; len--; }
+      while (len > 1 && matches(from, len - 1)) { len--; }
+      for (let k = from; k < from + len; k++) flagged.add(k);
+      break; // la ventana mínima desde `i` ya está registrada
     }
   }
   const anchors = [];
@@ -252,9 +266,9 @@ export function groundFields(fields, blocks) {
   const grounded = Object.create(null);
   const ungrounded = [];
 
-  // Primera pasada: cada campo busca su bloque.
-  const hits = new Map();      // key -> block
-  for (const key of Object.keys(flat)) {
+  const keys = Object.keys(flat);
+  const usable = [];
+  for (const key of keys) {
     const value = flat[key];
     if (value === null || value === undefined || value === '') continue;
     const rule = ruleFor(key);
@@ -266,47 +280,63 @@ export function groundFields(fields, blocks) {
       ungrounded.push({ key, value, reason: 'un booleano no puede estar impreso en el documento' });
       continue;
     }
-    const block = anchors.find((b) => blockSupports(rule, value, b));
-    if (block) hits.set(key, block);
-    else {
-      ungrounded.push({
-        key, value,
-        reason: anchors.length === 0
-          ? 'no hay bloques de OCR utilizables contra los que anclar'
-          : 'ningún bloque del documento respalda este valor con su etiqueta y su formato',
-      });
+    usable.push({ key, value, rule, item: itemIndexOf(key) });
+  }
+
+  const noAnchor = (key, value) => ungrounded.push({
+    key, value,
+    reason: anchors.length === 0
+      ? 'no hay bloques de OCR utilizables contra los que anclar'
+      : 'ningún bloque del documento respalda este valor con su etiqueta y su formato',
+  });
+
+  // ---- Campos de nivel superior: cada uno busca su bloque por etiqueta.
+  for (const f of usable.filter((x) => x.item === null)) {
+    const block = anchors.find((b) => blockSupports(f.rule, f.value, b));
+    if (block) grounded[f.key] = { value: f.value, bbox: block.bbox, confidence: block.confidence };
+    else noAnchor(f.key, f.value);
+  }
+
+  // ---- Ítems de detalle, en DOS fases. El orden importa: `quantity` es un
+  // número suelto sin etiqueta ("2"), así que buscándolo primero ancla contra
+  // el "02" de "Vencimiento: 02/09/2026" y arrastra al ítem entero. Primero se
+  // fija el RENGLÓN del ítem con sus campos específicos (importes y
+  // descripción, que traen formato propio), y después los sueltos se buscan
+  // SOLO dentro de ese renglón.
+  const SPECIFIC = new Set(['money', 'text']);
+  const byItem = new Map();
+  for (const f of usable.filter((x) => x.item !== null)) {
+    if (!byItem.has(f.item)) byItem.set(f.item, []);
+    byItem.get(f.item).push(f);
+  }
+
+  for (const [idx, fields] of byItem) {
+    // Fase 1: el renglón del ítem es el bloque que respalda más campos específicos.
+    const votes = new Map();
+    for (const f of fields.filter((x) => SPECIFIC.has(x.rule.kind))) {
+      for (const b of anchors) {
+        if (blockSupports(f.rule, f.value, b)) { votes.set(b, (votes.get(b) ?? 0) + 1); break; }
+      }
     }
-  }
+    let anchor = null; let bestN = 0;
+    for (const [b, n] of votes) if (n > bestN) { anchor = b; bestN = n; }
 
-  // Segunda pasada: COHESIÓN de los ítems. Los campos de un ítem tienen que
-  // haber anclado todos contra el mismo bloque; si no, son números pescados de
-  // renglones distintos y el ítem no existe como tal.
-  const itemBlocks = new Map();  // índice de ítem -> bloque mayoritario
-  for (const [key, block] of hits) {
-    const idx = itemIndexOf(key);
-    if (idx === null) continue;
-    const counts = itemBlocks.get(idx) ?? new Map();
-    counts.set(block, (counts.get(block) ?? 0) + 1);
-    itemBlocks.set(idx, counts);
-  }
-  const itemAnchor = new Map();
-  for (const [idx, counts] of itemBlocks) {
-    let best = null; let bestN = -1;
-    for (const [block, n] of counts) if (n > bestN) { best = block; bestN = n; }
-    itemAnchor.set(idx, best);
-  }
-
-  for (const [key, block] of hits) {
-    const value = flat[key];
-    const idx = itemIndexOf(key);
-    if (idx !== null && itemAnchor.get(idx) !== block) {
-      ungrounded.push({
-        key, value,
-        reason: `no está en el mismo renglón que el resto del ítem ${idx}: una línea de factura es una línea`,
-      });
+    if (!anchor) {
+      for (const f of fields) noAnchor(f.key, f.value);
       continue;
     }
-    grounded[key] = { value, bbox: block.bbox, confidence: block.confidence };
+
+    // Fase 2: todo campo del ítem tiene que estar en ESE renglón.
+    for (const f of fields) {
+      if (blockSupports(f.rule, f.value, anchor)) {
+        grounded[f.key] = { value: f.value, bbox: anchor.bbox, confidence: anchor.confidence };
+      } else {
+        ungrounded.push({
+          key: f.key, value: f.value,
+          reason: `no está en el renglón del ítem ${idx}: una línea de factura es una línea`,
+        });
+      }
+    }
   }
 
   return { grounded, ungrounded, suspiciousBlocks: suspicious };

@@ -22,7 +22,7 @@ test('un total inventado cae en ungrounded — la compuerta anti-alucinación', 
   assert.equal('total' in grounded, false);
   const hit = ungrounded.find((u) => u.key === 'total');
   assert.ok(hit, 'el total inventado tenía que quedar sin anclar');
-  assert.match(hit.reason, /no aparece/);
+  assert.match(hit.reason, /ning[uú]n bloque/);
 });
 
 test('un monto en formato es-AR ancla contra su valor numérico', () => {
@@ -46,7 +46,11 @@ test('una fecha ISO ancla contra DD/MM/YYYY del documento', () => {
 
 test('sin bloques de OCR nada ancla, y el motivo lo dice', () => {
   const { grounded, ungrounded } = groundFields({ total: 1 }, []);
-  assert.deepEqual(grounded, {});
+  // `grounded` tiene prototipo nulo a propósito (una clave "__proto__" en un
+  // objeto normal dispara el setter y el valor desaparece de la compuerta), así
+  // que se comparan las claves y no el objeto contra un literal.
+  assert.deepEqual(Object.keys(grounded), []);
+  assert.equal(Object.getPrototypeOf(grounded), null);
   assert.match(ungrounded[0].reason, /no hay bloques/);
 });
 
