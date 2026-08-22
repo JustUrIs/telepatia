@@ -1,5 +1,5 @@
 {
-  "verdict": "review",
+  "verdict": "fail",
   "checks": [
     {
       "id": "items_sum_subtotal",
@@ -21,9 +21,9 @@
     },
     {
       "id": "subtotal_plus_tax_equals_total",
-      "ok": true,
+      "ok": false,
       "expected": 421820.52,
-      "actual": 421820.52,
+      "actual": 421821.52,
       "evidence": [
         {
           "value": 421820.52,
@@ -38,9 +38,27 @@
       ]
     },
     {
+      "id": "tax_amount_matches_rate",
+      "ok": true,
+      "expected": 73208.52,
+      "actual": 73208.52,
+      "evidence": [
+        {
+          "value": 73208.52,
+          "bbox": [
+            60,
+            380,
+            220,
+            22
+          ],
+          "confidence": 0.99
+        }
+      ]
+    },
+    {
       "id": "tax_rate_plausible",
       "ok": true,
-      "expected": "0..0.30",
+      "expected": "0..0.3",
       "actual": 0.21,
       "evidence": [
         {
@@ -76,7 +94,7 @@
     {
       "id": "dates_ordered",
       "ok": true,
-      "expected": "2026-08-03<=2026-09-02",
+      "expected": "2026-08-03 <= 2026-09-02",
       "actual": true,
       "evidence": [
         {
@@ -93,8 +111,8 @@
     },
     {
       "id": "issue_date_not_future",
-      "ok": false,
-      "expected": "issueDate<=hoy",
+      "ok": true,
+      "expected": "<= 2026-08-22",
       "actual": "2026-08-03",
       "evidence": [
         {
@@ -108,15 +126,16 @@
           "confidence": 0.99
         }
       ]
-    }
-  ],
-  "ungrounded": [
+    },
     {
-      "key": "supplierTaxId",
-      "value": "30-99999999-9",
-      "reason": "no aparece en el texto del OCR"
+      "id": "invoice_not_duplicate",
+      "ok": true,
+      "expected": "no vista antes",
+      "actual": "primera vez",
+      "evidence": []
     }
   ],
+  "ungrounded": [],
   "matched": {
     "date": "2026-09-02",
     "description": "Transferencia a Insumos Patagonia SRL, FA-2026-00417",

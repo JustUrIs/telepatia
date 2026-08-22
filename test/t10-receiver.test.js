@@ -2,10 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { renderVerdict, renderFailure, progressLabel } from '../src/ui/receiver.js';
-import { FAILURE_CODES } from '../src/shared/contract.js';
+import { FAILURE_CODES, isVerdict } from '../src/shared/contract.js';
 import { encodeDocument, FrameDecoder } from '../src/optical/protocol.js';
 
-const sample = JSON.parse(readFileSync(new URL('../fixtures/verdict-sample.json', import.meta.url), 'utf8'));
+const load = (n) => JSON.parse(readFileSync(new URL(`../fixtures/${n}`, import.meta.url), 'utf8'));
+const VERDICTS = { pass: load('verdict-pass.json'), fail: load('verdict-fail.json'), review: load('verdict-review.json') };
+const sample = VERDICTS.review;
 
 test('renderVerdict produce una fila por check, con su evidencia', () => {
   const view = renderVerdict(sample);
@@ -17,8 +19,7 @@ test('renderVerdict produce una fila por check, con su evidencia', () => {
     assert.ok(row.evidence.every((e) => e.bbox === null || e.bbox.length === 4));
   }
   // El check que falla en el fixture tiene que quedar marcado.
-  assert.equal(view.failedCount, 1);
-  assert.equal(view.rows.find((r) => r.id === 'issue_date_not_future').tone, 'bad');
+  assert.equal(view.failedCount, 0, 'el fixture de review no tiene checks fallidos');
 });
 
 test('renderVerdict marca visualmente los campos sin anclar', () => {
@@ -29,12 +30,20 @@ test('renderVerdict marca visualmente los campos sin anclar', () => {
   assert.equal(view.ungrounded[0].tone, 'warn');
 });
 
-test('renderVerdict cubre los tres estados con títulos y tonos distintos', () => {
+test('renderVerdict cubre los tres estados, cada uno con su fixture real', () => {
   const seen = new Map();
   for (const status of ['pass', 'fail', 'review']) {
-    const v = renderVerdict({ ...sample, verdict: status });
+    const fixture = VERDICTS[status];
+    // El fixture es golden: si el Bloque B cambia la forma del Verdict, esto
+    // se rompe acá y no el último día. Es la aserción que faltaba.
+    assert.equal(isVerdict(fixture), true, `fixture ${status} no cumple el contrato`);
+    assert.equal(fixture.verdict, status);
+    const v = renderVerdict(fixture);
     seen.set(status, [v.title, v.tone]);
   }
+  assert.equal(renderVerdict(VERDICTS.fail).failedCount, 1);
+  assert.equal(renderVerdict(VERDICTS.pass).failedCount, 0);
+  assert.equal(renderVerdict(VERDICTS.review).hasUngrounded, true);
   const titles = [...seen.values()].map(([t]) => t);
   assert.equal(new Set(titles).size, 3, 'los tres estados deben tener títulos distintos');
   assert.equal(seen.get('pass')[1], 'ok');

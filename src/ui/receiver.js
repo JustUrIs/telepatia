@@ -26,6 +26,10 @@ const FAILURE_TEXT = {
     'El motor de inferencia local no está disponible. Revisá que el modelo esté descargado.',
   [FAILURE_CODES.malformedExtraction]:
     'La extracción no devolvió JSON válido. Se reintenta o se marca para revisión manual.',
+  [FAILURE_CODES.malformedRow]:
+    'Una fila del extracto bancario no se pudo interpretar. Quedó registrada como rechazada.',
+  [FAILURE_CODES.cameraUnavailable]:
+    'No se pudo abrir la cámara. Revisá el permiso del navegador y que ninguna otra app la esté usando.',
 };
 
 /** Un check → fila de vista, con su evidencia aplanada para mostrar. */
@@ -36,10 +40,13 @@ function checkRow(check) {
     tone: check.ok === true ? 'ok' : 'bad',
     expected: format(check.expected),
     actual: format(check.actual),
+    // La bbox es la prueba de procedencia del campo: una que no cumple la forma
+    // del contrato se reporta como desconocida, no se pasa a la vista para que
+    // alguien dibuje un recuadro con ella.
     evidence: (Array.isArray(check.evidence) ? check.evidence : []).map((e) => ({
       value: format(e?.value),
-      bbox: Array.isArray(e?.bbox) ? e.bbox : null,
-      confidence: typeof e?.confidence === 'number' ? e.confidence : null,
+      bbox: Array.isArray(e?.bbox) && e.bbox.length === 4 && e.bbox.every(Number.isFinite) ? e.bbox : null,
+      confidence: typeof e?.confidence === 'number' && e.confidence >= 0 && e.confidence <= 1 ? e.confidence : null,
     })),
   };
 }
@@ -97,7 +104,11 @@ export function renderFailure(failure) {
     stageIndex: STAGES.indexOf(failure.stage),
     code: failure.code,
     title: `Falló en la etapa "${failure.stage}"`,
-    text: FAILURE_TEXT[failure.code] ?? failure.message ?? 'Error desconocido.',
+    // Object.hasOwn y no indexación cruda: con `code: 'toString'` el lookup
+    // alcanzaba Object.prototype y `text` dejaba de ser un string.
+    text: Object.hasOwn(FAILURE_TEXT, failure.code)
+      ? FAILURE_TEXT[failure.code]
+      : (failure.message || 'Error desconocido.'),
     recoverable: failure.code !== FAILURE_CODES.unsupportedVersion,
   };
 }
@@ -143,7 +154,7 @@ export async function mount({ video, canvas, bar, status, result, onDocument }) 
       video: { facingMode: 'environment', width: { ideal: 1280 } },
     });
   } catch (err) {
-    render(renderFailure({ stage: 'scan', code: FAILURE_CODES.backendUnavailable,
+    render(renderFailure({ stage: 'scan', code: FAILURE_CODES.cameraUnavailable,
       message: `No se pudo abrir la cámara: ${err?.message ?? err}` }));
     return { decoder, stop: () => {} };
   }

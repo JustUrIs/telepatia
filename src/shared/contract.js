@@ -11,7 +11,10 @@
 /** @typedef {{ stage: string, code: string, message: string }} Failure */
 
 /** Etapas del pipeline, en orden. Las usan las métricas y la UI. */
-export const STAGES = ['scan', 'assemble', 'ocr', 'extract', 'ground', 'reconcile', 'match', 'verdict'];
+// `csv` es la carga y normalización del extracto bancario (Bloque A, T-07/T-08).
+// Estaba ausente, y sin ella T-08 no podía emitir un `Failure` válido para una
+// fila inválida: `isFailure` exige que el `stage` esté en esta lista.
+export const STAGES = ['scan', 'assemble', 'csv', 'ocr', 'extract', 'ground', 'reconcile', 'match', 'verdict'];
 
 /** Códigos de fallo que la UI tiene que saber renderizar. */
 export const FAILURE_CODES = {
@@ -21,6 +24,10 @@ export const FAILURE_CODES = {
   emptyDocument: 'emptyDocument',
   backendUnavailable: 'backendUnavailable',
   malformedExtraction: 'malformedExtraction',
+  /** Fila del extracto bancario que no se pudo normalizar (T-08). */
+  malformedRow: 'malformedRow',
+  /** La cámara no está disponible o el permiso fue denegado (T-10). */
+  cameraUnavailable: 'cameraUnavailable',
 };
 
 /** docId (u32) a la forma canónica de 8 chars hex usada en rutas. */
