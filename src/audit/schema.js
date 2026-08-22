@@ -61,17 +61,22 @@ export function validateInvoice(obj, schema = INVOICE_SCHEMA) {
   }
   const props = schema.properties ?? {};
 
+  // Object.hasOwn y no `in`: `in` hereda, así que `'__proto__' in props` es true
+  // y `validateInvoice({...ok, constructor:'colado'})` pasaba. Peor:
+  // `validateInvoice(Object.create(facturaOk))` pasaba con CERO propiedades
+  // propias, y como `flatten` solo ve propias, la compuerta de grounding no
+  // encontraba nada que verificar y no se quejaba.
   for (const key of schema.required ?? []) {
-    if (!(key in obj)) errors.push(`falta la clave requerida "${key}"`);
+    if (!Object.hasOwn(obj, key)) errors.push(`falta la clave requerida "${key}"`);
   }
   if (schema.additionalProperties === false) {
     for (const key of Object.keys(obj)) {
-      if (!(key in props)) errors.push(`clave no permitida "${key}"`);
+      if (!Object.hasOwn(props, key)) errors.push(`clave no permitida "${key}"`);
     }
   }
 
   for (const [key, spec] of Object.entries(props)) {
-    if (!(key in obj)) continue;
+    if (!Object.hasOwn(obj, key)) continue;
     const value = obj[key];
     if (value === null) { errors.push(`"${key}" es null`); continue; }
     if (spec.type === 'string' && typeof value !== 'string') {

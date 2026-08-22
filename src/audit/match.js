@@ -51,6 +51,13 @@ export function matchTransaction(grounded, transactions) {
 
     // Un candidato tiene que parecerse en el MONTO. Sin eso no es candidato:
     // coincidir solo en moneda o fecha no dice nada.
+    // La moneda DESCALIFICA, no suma puntos. Antes solo aportaba 10 y un débito
+    // de USD 1000 "pagaba" una factura de ARS 1000 con score 65.
+    if (currency && tx.currency.toUpperCase() !== currency) continue;
+    // Un total de 0 hacía vacuo el branch de "monto exacto" (todo está a ≤1
+    // centavo de cero), así que cualquier movimiento chico matcheaba.
+    if (totalCents === 0) continue;
+
     let score = 0;
     const reasons = [];
     if (Math.abs(txCents - totalCents) <= 1) {
@@ -71,9 +78,7 @@ export function matchTransaction(grounded, transactions) {
       const hay = squash(`${tx.description} ${tx.ref ?? ''}`);
       if (hay.includes(invoiceKey)) { score += W.invoiceRef; reasons.push('número de factura en la descripción'); }
     }
-    if (currency && tx.currency.toUpperCase() === currency) {
-      score += W.currency; reasons.push('moneda coincide');
-    }
+    if (currency) { score += W.currency; reasons.push('moneda coincide'); }
     candidates.push({ tx, score, reasons });
   }
 

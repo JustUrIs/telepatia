@@ -9,8 +9,23 @@
 import { toCents } from '../shared/contract.js';
 import { parseDateIso } from '../shared/money.js';
 
-/** Tolerancia de redondeo: un centavo. */
+/**
+ * Tolerancia de redondeo: UN centavo, y no escala con la cantidad de ítems.
+ *
+ * Primero intenté escalarla (1 + N/2) porque redondear cada ítem y después
+ * sumar acumula error. Estaba mal: con 200 ítems eso da 101 centavos de margen,
+ * y el ataque que quería frenar —200 ítems de 0,005 que suman $1,00 contra un
+ * subtotal declarado de $2,00— pasaba igual. Escalar la tolerancia le regala al
+ * atacante exactamente el margen que necesita.
+ *
+ * El arreglo correcto ataca la premisa: **un importe de línea de medio centavo
+ * no es un importe legítimo.** La plata tiene granularidad de centavo. Se exige
+ * que cada importe sea un número entero de centavos, la suma es exacta por
+ * construcción, y la tolerancia se queda en 1 centavo para siempre.
+ */
 const CENT_TOLERANCE = 1;
+/** ¿Es un monto con granularidad de centavo? (tolerando el ruido de IEEE-754) */
+const isWholeCents = (v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6;
 const MAX_TAX_RATE = 0.30;
 
 const val = (grounded, key) => (key in grounded ? grounded[key].value : undefined);
@@ -51,19 +66,53 @@ export function reconcileInvoice(grounded, opts = {}) {
     checks.push(check('items_sum_subtotal', false, 'suma de ítems === subtotal',
       null, ev(grounded, 'subtotal'), 'faltan ítems o el subtotal no está anclado'));
   } else {
-    let sum = 0;
+    // Suma EXACTA y un solo redondeo al final; y todo importe de línea tiene
+    // que venir en centavos enteros, o la suma no es comparable.
+    let exact = 0;
     let broken = false;
+    const subCent = [];
     for (const i of indices) {
-      const c = toCents(val(grounded, `lineItems.${i}.amount`));
-      if (c === null) { broken = true; break; }
-      sum += c;
+      const v = val(grounded, `lineItems.${i}.amount`);
+      if (typeof v !== 'number' || !Number.isFinite(v)) { broken = true; break; }
+      if (!isWholeCents(v)) subCent.push(i);
+      exact += v;
     }
+    const sum = Math.round(exact * 100);
+    const diff = Math.abs(sum - subtotal);
     checks.push(broken
       ? check('items_sum_subtotal', false, 'suma de ítems === subtotal', null,
           ev(grounded, 'subtotal'), 'algún ítem no tiene monto anclado')
-      : check('items_sum_subtotal', Math.abs(sum - subtotal) <= CENT_TOLERANCE,
-          subtotal / 100, sum / 100,
-          ev(grounded, 'subtotal', ...indices.map((i) => `lineItems.${i}.amount`))));
+      : subCent.length > 0
+        ? check('items_sum_subtotal', false, 'importes en centavos enteros',
+            `ítem(s) con fracción de centavo: ${subCent.join(', ')}`,
+            ev(grounded, 'subtotal', ...subCent.map((i) => `lineItems.${i}.amount`)),
+            'un importe de línea con fracción de centavo no es un importe legítimo')
+        : check('items_sum_subtotal', diff <= CENT_TOLERANCE,
+            subtotal / 100, sum / 100,
+            ev(grounded, 'subtotal', ...indices.map((i) => `lineItems.${i}.amount`)),
+            diff <= CENT_TOLERANCE ? undefined
+              : `diferencia de ${(diff / 100).toFixed(2)} sobre ${indices.length} ítems`));
+
+    // ---- Cada ítem: cantidad × precio unitario === importe.
+    // El schema exige `quantity` y `unitPrice` y NADIE los miraba: 1 × 10
+    // facturado como 1000 salía `pass`.
+    const badItems = [];
+    let checkable = 0;
+    for (const i of indices) {
+      const q = val(grounded, `lineItems.${i}.quantity`);
+      const u = val(grounded, `lineItems.${i}.unitPrice`);
+      const a = val(grounded, `lineItems.${i}.amount`);
+      if (![q, u, a].every((x) => typeof x === 'number' && Number.isFinite(x))) continue;
+      checkable++;
+      if (Math.abs(Math.round(q * u * 100) - Math.round(a * 100)) > CENT_TOLERANCE) {
+        badItems.push(`ítem ${i}: ${q} × ${u} = ${(q * u).toFixed(2)}, declara ${a.toFixed(2)}`);
+      }
+    }
+    checks.push(check('line_items_math', checkable > 0 && badItems.length === 0,
+      'cantidad × precio unitario === importe, en cada ítem',
+      badItems.length > 0 ? badItems.join('; ') : `${checkable} ítem(s) verificados`,
+      ev(grounded, ...indices.flatMap((i) => [`lineItems.${i}.quantity`, `lineItems.${i}.unitPrice`, `lineItems.${i}.amount`])),
+      checkable === 0 ? 'ningún ítem tiene cantidad, precio e importe anclados a la vez' : undefined));
   }
 
   // ---- 2. subtotal + impuesto === total

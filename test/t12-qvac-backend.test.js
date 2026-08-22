@@ -81,12 +81,31 @@ test('ocr() normaliza bloques y descarta los inservibles', async () => {
     ]) }),
   });
   const blocks = await new QvacBackend({ sdk }).ocr('/x.png');
-  assert.equal(blocks.length, 4);
+  // 'sin bbox' se DESCARTA: la bbox es la prueba de procedencia del campo que
+  // se ancle ahí, y fabricar [0,0,0,0] es dar evidencia inventada.
+  assert.equal(blocks.length, 3);
   assert.ok(blocks.every(isOcrBlock));
-  assert.deepEqual(blocks.find((b) => b.text === 'sin bbox').bbox, [0, 0, 0, 0]);
+  assert.equal(blocks.find((b) => b.text === 'sin bbox'), undefined);
   assert.equal(blocks.find((b) => b.text === 'conf fuera de rango').confidence, 1);
   // Un polígono de 4 puntos se convierte a caja axis-aligned.
   assert.deepEqual(blocks.find((b) => b.text === 'poligono').bbox, [10, 20, 20, 30]);
+  // Confianza ausente => 0, no 0.5: 0.5 es el lowConfidenceThreshold del OCR y
+  // confundir "desconocida" con "medida en 0.5" es perder información.
+  assert.equal(blocks.find((b) => b.text === 'poligono').confidence, 0);
+});
+
+test('una bbox invertida o con NaN descarta el bloque', async () => {
+  const { sdk } = fakeSdk({
+    ocr: () => ({ blocks: Promise.resolve([
+      { text: 'nan', bbox: [10, NaN, 100, 12], confidence: 0.9 },
+      { text: 'infinito', bbox: [10, 20, Infinity, 12], confidence: 0.9 },
+      { text: 'strings', bbox: ['10', '20', '100', '12'], confidence: 0.9 },
+      { text: 'invertida', bbox: [500, 500, -400, -400], confidence: 0.9 },
+      { text: 'buena', bbox: [1, 2, 3, 4], confidence: 0.9 },
+    ]) }),
+  });
+  const blocks = await new QvacBackend({ sdk }).ocr('/x.png');
+  assert.deepEqual(blocks.map((b) => b.text), ['buena']);
 });
 
 test('un OCR que devuelve algo que no es array se reporta como malformado', async () => {

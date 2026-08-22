@@ -40,6 +40,11 @@ export const docIdHex = (docId) => {
 
 /** Dónde vive todo lo de una corrida. */
 export const runPaths = (docId) => {
+  // Un docId string entraba SIN validar, y el docId viene del header de un
+  // frame óptico: `runPaths('../../pwned')` escribía fuera de runs/.
+  if (typeof docId === 'string') {
+    if (!/^[0-9a-f]{8}$/.test(docId)) throw new TypeError(`docId inválido: ${JSON.stringify(docId)}`);
+  }
   const hex = typeof docId === 'string' ? docId : docIdHex(docId);
   return {
     dir: `runs/${hex}`,

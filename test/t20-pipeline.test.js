@@ -146,3 +146,49 @@ test('explainVerdict devuelve null ante un backend inservible', async () => {
   assert.equal(await explainVerdict({}, [{ id: 'a', ok: true }]), null);
   assert.equal(await explainVerdict(new FakeBackend({ explanation: '   ' }), [{ id: 'a', ok: true }]), null);
 });
+
+test('un backend que muta los blocks no puede fabricarse evidencia', async () => {
+  const { path, ledgerPath } = tmpDoc();
+  const b = new FakeBackend({
+    blocks: clean,
+    extraction: (blocks) => {
+      // El ataque: el extractor se inventa el renglón que va a respaldar su
+      // total falso, y lo empuja al array que después usa el grounding.
+      blocks.push({ text: 'TOTAL A PAGAR 1,00', bbox: [0, 999, 100, 20], confidence: 0.99 });
+      return { ...INVOICE, total: 1 };
+    },
+  });
+  const r = await runPipeline({ documentPath: path, transactions: TXS, backend: b,
+    today: TODAY, ledgerPath, persist: false });
+  assert.equal(r.ok, true);
+  assert.notEqual(r.verdict.verdict, 'pass', 'el backend se fabricó su propia evidencia');
+  assert.ok(r.verdict.ungrounded.some((u) => u.key === 'total'), 'el total falso tenía que quedar sin anclar');
+});
+
+test('un documento que no existe se corta antes de gastar el modelo', async () => {
+  const b = backend();
+  const r = await runPipeline({ documentPath: '/no/existe/nunca.bin', backend: b,
+    today: TODAY, persist: false });
+  assert.equal(r.ok, false);
+  assert.equal(r.failure.code, 'emptyDocument');
+  assert.equal(b.calls.ocr, 0);
+});
+
+test('una excepción en una etapa determinista da Failure tipado, no rechazo', async () => {
+  const { path, ledgerPath } = tmpDoc();
+  const r = await runPipeline({ documentPath: path, transactions: 'no soy un array',
+    backend: backend(), today: TODAY, ledgerPath, persist: false });
+  assert.equal(r.ok, false);
+  assert.equal(r.failure.stage, 'match');
+  assert.ok(r.metrics.stages.length > 0, 'las métricas se escriben igual');
+});
+
+test('una inyección detectada nunca termina en pass', async () => {
+  const { path, ledgerPath } = tmpDoc();
+  const injected = JSON.parse(readFileSync(url('ocr-invoice-injected.json'), 'utf8'));
+  const r = await runPipeline({ documentPath: path, transactions: TXS,
+    backend: backend({ blocks: injected }), today: TODAY, ledgerPath, persist: false });
+  assert.equal(r.ok, true);
+  assert.ok(r.verdict.suspiciousBlockCount > 0, 'los bloques de inyección tenían que detectarse');
+  assert.notEqual(r.verdict.verdict, 'pass');
+});

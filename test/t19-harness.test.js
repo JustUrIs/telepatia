@@ -92,3 +92,21 @@ test('runHarness rechaza un corpus vacío o inválido', () => {
   assert.throws(() => runHarness([]), TypeError);
   assert.throws(() => runHarness(null), TypeError);
 });
+
+test('una familia "__proto__" no contamina Object.prototype', () => {
+  const antes = Object.keys(Object.prototype).length;
+  const r = runHarness([{ id: 'x', family: '__proto__', blocks: [], extraction: {} }], opts());
+  assert.equal(r.rows.length, 1);
+  assert.equal(Object.prototype.total, undefined, 'escribió en Object.prototype');
+  assert.equal(('total' in {}), false);
+  assert.equal(Object.keys(Object.prototype).length, antes);
+});
+
+test('adversarialPassed cuenta todo lo que no sea control, no solo "adversarial"', () => {
+  const legit = JSON.parse(readFileSync(url('ocr-invoice-clean.json'), 'utf8'));
+  const inv = JSON.parse(readFileSync(new URL('./_invoice.js', import.meta.url).pathname.replace('_invoice.js', '_invoice.js'), 'utf8')
+    .match(/export const INVOICE = (\{[\s\S]*?\n\});/)[1].replace(/(\w+):/g, '"$1":').replace(/'/g, '"').replace(/,(\s*[}\]])/g, '$1'));
+  // Un caso con familia arbitraria que SÍ pasa: antes la métrica lo ignoraba.
+  const r = runHarness([{ id: 'colado', family: 'injection', blocks: legit, extraction: inv }], opts());
+  assert.deepEqual(r.adversarialPassed, ['colado']);
+});

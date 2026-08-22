@@ -106,3 +106,49 @@ test('reconcileInvoice rechaza entrada que no sea objeto', () => {
   assert.throws(() => reconcileInvoice(null), TypeError);
   assert.throws(() => reconcileInvoice('x'), TypeError);
 });
+
+test('salami: 200 ítems de 0,005 NO validan un subtotal inflado al doble', () => {
+  // La suma real es 1,00. Round-then-sum con tolerancia fija de 1 centavo daba
+  // por bueno un subtotal declarado de 2,00: factura inflada al 200% aprobada.
+  const g = {};
+  for (let i = 0; i < 200; i++) g[`lineItems.${i}.amount`] = { value: 0.005, bbox: [0, 0, 1, 1], confidence: 0.9 };
+  g.subtotal = { value: 2, bbox: [0, 0, 1, 1], confidence: 0.9 };
+  const checks = reconcileInvoice(g, { today: TODAY });
+  assert.equal(byId(checks, 'items_sum_subtotal').ok, false);
+  assert.match(String(byId(checks, 'items_sum_subtotal').actual), /fracci[oó]n de centavo/);
+});
+
+test('un subtotal inflado con ítems en centavos enteros también falla', () => {
+  const g = {};
+  for (let i = 0; i < 200; i++) g[`lineItems.${i}.amount`] = { value: 0.01, bbox: [0, 0, 1, 1], confidence: 0.9 };
+  g.subtotal = { value: 4, bbox: [0, 0, 1, 1], confidence: 0.9 };  // real: 2.00
+  const c = byId(reconcileInvoice(g, { today: TODAY }), 'items_sum_subtotal');
+  assert.equal(c.ok, false);
+  assert.match(String(c.note), /diferencia de 2\.00/);
+});
+
+test('salami: un importe de medio centavo se rechaza incluso si la suma cierra', () => {
+  const g = {};
+  for (let i = 0; i < 200; i++) g[`lineItems.${i}.amount`] = { value: 0.005, bbox: [0, 0, 1, 1], confidence: 0.9 };
+  g.subtotal = { value: 1, bbox: [0, 0, 1, 1], confidence: 0.9 };
+  // Sigue fallando, y está bien: 0,005 no es un importe legítimo.
+  assert.equal(byId(reconcileInvoice(g, { today: TODAY }), 'items_sum_subtotal').ok, false);
+});
+
+test('line_items_math: 1 × 10 declarado como 1000 falla', () => {
+  const g = {
+    'lineItems.0.quantity': { value: 1, bbox: [0, 0, 1, 1], confidence: 0.9 },
+    'lineItems.0.unitPrice': { value: 10, bbox: [0, 0, 1, 1], confidence: 0.9 },
+    'lineItems.0.amount': { value: 1000, bbox: [0, 0, 1, 1], confidence: 0.9 },
+    subtotal: { value: 1000, bbox: [0, 0, 1, 1], confidence: 0.9 },
+  };
+  const c = byId(reconcileInvoice(g, { today: TODAY }), 'line_items_math');
+  assert.equal(c.ok, false);
+  assert.match(String(c.actual), /1 × 10/);
+});
+
+test('line_items_math: la factura legítima pasa el check nuevo', () => {
+  const checks = run(INVOICE);
+  assert.equal(byId(checks, 'line_items_math').ok, true);
+  assert.match(String(byId(checks, 'line_items_math').actual), /3 ítem/);
+});

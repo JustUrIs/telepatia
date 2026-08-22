@@ -19,6 +19,25 @@ import { buildVerdict } from './verdict.js';
 
 export const LAYERS = ['schema', 'ground', 'verdict'];
 
+/** Cuántas claves se nombran en el detalle antes de resumir. Sin esto, un caso
+ *  con 200 ítems lista 600 claves y el reporte —que es un entregable— queda
+ *  ilegible. */
+const MAX_KEYS_IN_DETAIL = 6;
+
+function summarizeKeys(keys, prefix) {
+  if (keys.length <= MAX_KEYS_IN_DETAIL) return `${prefix}: ${keys.join(', ')}`;
+  // Agrupa las rutas de ítems: lineItems.7.amount -> lineItems.N.amount
+  const grouped = new Map();
+  for (const k of keys) {
+    const g = k.replace(/^lineItems\.\d+\./, 'lineItems.N.');
+    grouped.set(g, (grouped.get(g) ?? 0) + 1);
+  }
+  const shown = [...grouped.entries()].slice(0, MAX_KEYS_IN_DETAIL)
+    .map(([k, n]) => (n > 1 ? `${k} ×${n}` : k));
+  const resto = grouped.size - shown.length;
+  return `${prefix} (${keys.length}): ${shown.join(', ')}${resto > 0 ? ` y ${resto} más` : ''}`;
+}
+
 /**
  * Corre un caso por las cuatro capas y reporta dónde murió.
  * @returns {{id:string, family:string, blockedBy:string|null, verdict:string,
@@ -54,7 +73,7 @@ export function runCase(testCase, { transactions = [], today, ledgerPath, persis
   // check que falla después es consecuencia, no causa.
   if (ungrounded.length > 0) {
     return { ...base, blockedBy: 'ground', verdict: verdict.verdict,
-      detail: `sin anclar: ${ungrounded.map((u) => u.key).join(', ')}` };
+      detail: summarizeKeys(ungrounded.map((u) => u.key), 'sin anclar') };
   }
   if (verdict.verdict === 'fail') {
     return { ...base, blockedBy: 'verdict', verdict: 'fail',
@@ -81,19 +100,26 @@ export function runHarness(corpus, opts = {}) {
   const byLayer = { schema: 0, ground: 0, verdict: 0, none: 0 };
   for (const r of rows) byLayer[r.blockedBy ?? 'none']++;
 
-  const families = {};
+  // Object.create(null): con `families[r.family] ??= {...}` y `family:'__proto__'`,
+  // el `??=` no asignaba (Object.prototype es truthy) y los `++` escribían EN
+  // Object.prototype. Verificado: contaminaba el proceso entero.
+  const families = Object.create(null);
   for (const r of rows) {
-    families[r.family] ??= { total: 0, blocked: 0, passed: 0 };
-    families[r.family].total++;
-    if (r.blockedBy === null) families[r.family].passed++;
-    else families[r.family].blocked++;
+    const fam = String(r.family ?? 'sin-familia');
+    if (!Object.hasOwn(families, fam)) families[fam] = { total: 0, blocked: 0, passed: 0 };
+    families[fam].total++;
+    if (r.blockedBy === null) families[fam].passed++;
+    else families[fam].blocked++;
   }
 
   return {
     rows,
     byLayer,
     byFamily: families,
-    adversarialPassed: rows.filter((r) => r.family === 'adversarial' && r.blockedBy === null).map((r) => r.id),
+    // Todo lo que NO es control cuenta como ataque. Antes solo miraba
+    // `family === 'adversarial'`, así que un caso con `family:'injection'` o sin
+    // familia pasaba y la métrica reportaba cero ataques exitosos.
+    adversarialPassed: rows.filter((r) => r.family !== 'control' && r.blockedBy === null).map((r) => r.id),
   };
 }
 

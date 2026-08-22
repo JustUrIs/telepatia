@@ -2380,5 +2380,1670 @@
       "total": 421820.52
     },
     "note": "OCR no devolvió nada (foto ilegible)"
+  },
+  {
+    "id": "coherent-understate",
+    "family": "coherent-fake",
+    "blocks": [
+      {
+        "text": "Factura B 0002-00099",
+        "bbox": [
+          60,
+          40,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "Fecha de emision: 03/08/2026",
+        "bbox": [
+          60,
+          66,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "Vencimiento: 02/09/2026",
+        "bbox": [
+          60,
+          92,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "Proveedor: Insumos Patagonia SRL",
+        "bbox": [
+          60,
+          118,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "CUIT 30-71455892-4",
+        "bbox": [
+          60,
+          144,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "Moneda: ARS",
+        "bbox": [
+          60,
+          170,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "Cantidad 1 x 100,00",
+        "bbox": [
+          60,
+          200,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "Descuentos: 0,00",
+        "bbox": [
+          60,
+          226,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "TOTAL A PAGAR   510.402,83",
+        "bbox": [
+          60,
+          260,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      }
+    ],
+    "extraction": {
+      "invoiceNumber": "0002-00099",
+      "issueDate": "2026-08-03",
+      "dueDate": "2026-09-02",
+      "supplierName": "Insumos Patagonia SRL",
+      "supplierTaxId": "30-71455892-4",
+      "currency": "ARS",
+      "lineItems": [
+        {
+          "description": "Cantidad",
+          "quantity": 1,
+          "unitPrice": 100,
+          "amount": 100
+        }
+      ],
+      "subtotal": 100,
+      "taxRate": 0,
+      "taxAmount": 0,
+      "total": 100
+    },
+    "note": "declara 100 contra un documento de 510.402,83, con números que SI estan impresos"
+  },
+  {
+    "id": "coherent-salami",
+    "family": "coherent-fake",
+    "blocks": [
+      {
+        "text": "Insumos Patagonia SRL",
+        "bbox": [
+          60,
+          40,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "CUIT 30-71455892-4",
+        "bbox": [
+          60,
+          66,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "FACTURA A  N° FA-2026-00417",
+        "bbox": [
+          60,
+          100,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Fecha de emision: 03/08/2026",
+        "bbox": [
+          60,
+          126,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Vencimiento: 02/09/2026",
+        "bbox": [
+          60,
+          150,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Moneda: ARS",
+        "bbox": [
+          60,
+          174,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Resma A4 80g x10   12   4.850,00   58.200,00",
+        "bbox": [
+          60,
+          230,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Toner HP 26A   2   121.500,00   243.000,00",
+        "bbox": [
+          60,
+          256,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Cinta embalaje 48mm   24   1.975,50   47.412,00",
+        "bbox": [
+          60,
+          282,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Subtotal   348.612,00",
+        "bbox": [
+          60,
+          330,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "IVA 21%   73.208,52",
+        "bbox": [
+          60,
+          354,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "TOTAL   421.820,52",
+        "bbox": [
+          60,
+          380,
+          220,
+          22
+        ],
+        "confidence": 0.99
+      },
+      {
+        "text": "Item 0,5",
+        "bbox": [
+          60,
+          500,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "Subtotal 2,00",
+        "bbox": [
+          60,
+          526,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      }
+    ],
+    "extraction": {
+      "invoiceNumber": "FA-2026-00417",
+      "issueDate": "2026-08-03",
+      "dueDate": "2026-09-02",
+      "supplierName": "Insumos Patagonia SRL",
+      "supplierTaxId": "30-71455892-4",
+      "currency": "ARS",
+      "lineItems": [
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        },
+        {
+          "description": "Item",
+          "quantity": 1,
+          "unitPrice": 0.005,
+          "amount": 0.005
+        }
+      ],
+      "subtotal": 2,
+      "taxRate": 0,
+      "taxAmount": 0,
+      "total": 2
+    },
+    "note": "200 items de medio centavo suman 1,00 y declara 2,00"
+  },
+  {
+    "id": "coherent-line-math",
+    "family": "coherent-fake",
+    "blocks": [
+      {
+        "text": "Insumos Patagonia SRL",
+        "bbox": [
+          60,
+          40,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "CUIT 30-71455892-4",
+        "bbox": [
+          60,
+          66,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "FACTURA A  N° FA-2026-00417",
+        "bbox": [
+          60,
+          100,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Fecha de emision: 03/08/2026",
+        "bbox": [
+          60,
+          126,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Vencimiento: 02/09/2026",
+        "bbox": [
+          60,
+          150,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Moneda: ARS",
+        "bbox": [
+          60,
+          174,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Resma A4 80g x10   12   4.850,00   58.200,00",
+        "bbox": [
+          60,
+          230,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Toner HP 26A   2   121.500,00   243.000,00",
+        "bbox": [
+          60,
+          256,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Cinta embalaje 48mm   24   1.975,50   47.412,00",
+        "bbox": [
+          60,
+          282,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "Subtotal   348.612,00",
+        "bbox": [
+          60,
+          330,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "IVA 21%   73.208,52",
+        "bbox": [
+          60,
+          354,
+          220,
+          22
+        ],
+        "confidence": 0.97
+      },
+      {
+        "text": "TOTAL   421.820,52",
+        "bbox": [
+          60,
+          380,
+          220,
+          22
+        ],
+        "confidence": 0.99
+      },
+      {
+        "text": "Resma A4 80g x10   1   10,00   1.000,00",
+        "bbox": [
+          60,
+          550,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "Subtotal   1.000,00",
+        "bbox": [
+          60,
+          576,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "IVA 21%   210,00",
+        "bbox": [
+          60,
+          602,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      },
+      {
+        "text": "TOTAL   1.210,00",
+        "bbox": [
+          60,
+          628,
+          220,
+          22
+        ],
+        "confidence": 0.95
+      }
+    ],
+    "extraction": {
+      "invoiceNumber": "FA-2026-00417",
+      "issueDate": "2026-08-03",
+      "dueDate": "2026-09-02",
+      "supplierName": "Insumos Patagonia SRL",
+      "supplierTaxId": "30-71455892-4",
+      "currency": "ARS",
+      "lineItems": [
+        {
+          "description": "Resma A4 80g x10",
+          "quantity": 1,
+          "unitPrice": 10,
+          "amount": 1000
+        }
+      ],
+      "subtotal": 1000,
+      "taxRate": 0.21,
+      "taxAmount": 210,
+      "total": 1210
+    },
+    "note": "1 x 10 facturado como 1000; la suma y el IVA cierran entre si"
   }
 ]

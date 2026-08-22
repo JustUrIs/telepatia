@@ -80,3 +80,25 @@ test('entradas inválidas lanzan TypeError', () => {
   assert.throws(() => matchTransaction(null, TXS), TypeError);
   assert.throws(() => matchTransaction(g(), 'no es array'), TypeError);
 });
+
+test('la moneda DESCALIFICA: un débito en USD no paga una factura en ARS', () => {
+  const grounded = {
+    total: { value: 1000, bbox: [0, 0, 1, 1], confidence: 1 },
+    currency: { value: 'ARS', bbox: [0, 0, 1, 1], confidence: 1 },
+    dueDate: { value: '2026-02-01', bbox: [0, 0, 1, 1], confidence: 1 },
+  };
+  const usd = [{ date: '2026-02-01', description: 'debito', amount: 1000, currency: 'USD', ref: 'X' }];
+  const { matched, candidates } = matchTransaction(grounded, usd);
+  assert.equal(matched, null);
+  assert.deepEqual(candidates, [], 'una transacción en otra moneda no es candidata');
+});
+
+test('un total de 0 no matchea cualquier movimiento chico', () => {
+  const grounded = {
+    total: { value: 0, bbox: [0, 0, 1, 1], confidence: 1 },
+    currency: { value: 'ARS', bbox: [0, 0, 1, 1], confidence: 1 },
+    dueDate: { value: '2026-02-01', bbox: [0, 0, 1, 1], confidence: 1 },
+  };
+  const { matched } = matchTransaction(grounded, [{ date: '2026-02-01', description: 'cafe', amount: 0.004, currency: 'ARS' }]);
+  assert.equal(matched, null);
+});

@@ -10,17 +10,34 @@ import { LEDGER_PATH, isVerdict, runPaths, docIdHex } from '../shared/contract.j
 
 /** Lee el ledger tolerando ausencia y corrupción. Nunca lanza. */
 export function readLedger(path = LEDGER_PATH) {
+  let raw;
   try {
-    const raw = readFileSync(path, 'utf8');
-    const parsed = JSON.parse(raw);
-    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
-    return parsed;
+    raw = readFileSync(path, 'utf8');
   } catch {
-    // No existe, o quedó corrupto: se trata como vacío. Un ledger ilegible no
-    // debe tumbar una auditoría; a lo sumo pierde la detección de duplicados.
-    return {};
+    return { entries: Object.create(null), readable: true }; // no existe: primera corrida
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return { entries: Object.create(null), readable: false };
+    }
+    // Sin prototipo: una clave "__proto__" en el archivo no debe tocar
+    // Object.prototype al copiarla.
+    const entries = Object.create(null);
+    for (const k of Object.keys(parsed)) entries[k] = parsed[k];
+    return { entries, readable: true };
+  } catch {
+    // EXISTE pero no se puede leer. Fail-CLOSED: un ledger truncado por una
+    // escritura interrumpida hacía que una factura ya aprobada volviera a
+    // pasar. No saber si es duplicada no es lo mismo que saber que no lo es.
+    return { entries: Object.create(null), readable: false };
   }
 }
+
+/** Clave canónica del ledger. Sin esto, `INV-001`, `inv-001` y `INV-001 ` eran
+ *  tres facturas distintas: doble pago con un espacio de diferencia. */
+export const ledgerKey = (invoiceNumber) =>
+  String(invoiceNumber).toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 function writeLedger(ledger, path) {
   try {
@@ -51,15 +68,19 @@ export function buildVerdict(input) {
   const all = [...checks];
 
   // ---- Check de duplicado, contra el ledger local.
-  const ledger = readLedger(ledgerPath);
-  if (typeof invoiceNumber === 'string' && invoiceNumber !== '') {
-    const prior = ledger[invoiceNumber];
+  const { entries: ledger, readable } = readLedger(ledgerPath);
+  const key = typeof invoiceNumber === 'string' && invoiceNumber.trim() !== ''
+    ? ledgerKey(invoiceNumber) : null;
+  if (key !== null && key !== '') {
+    const prior = Object.hasOwn(ledger, key) ? ledger[key] : null;
     all.push({
       id: 'invoice_not_duplicate',
-      ok: !prior,
+      ok: readable && !prior,
       expected: 'no vista antes',
-      actual: prior ? `ya vista el ${prior.seenAt} (docId ${prior.docId})` : 'primera vez',
+      actual: !readable ? 'ledger ilegible: no se puede descartar un duplicado'
+        : prior ? `ya vista el ${prior.seenAt} (docId ${prior.docId})` : 'primera vez',
       evidence: [],
+      ...(readable ? {} : { note: 'un ledger corrupto no abre la puerta: fail-closed' }),
     });
   } else {
     all.push({
@@ -73,6 +94,9 @@ export function buildVerdict(input) {
   }
 
   // ---- Reglas del dictamen. En este orden, y sin excepciones.
+  // Un check malformado (sin `ok`, o con `ok:'true'`) cuenta como FALLO, no
+  // hace lanzar: antes la excepción salía por runPipeline sin métricas.
+  for (const c of all) if (typeof c?.ok !== 'boolean') { c.ok = false; c.note = (c.note ?? '') + ' [check malformado]'; }
   const failed = all.filter((c) => c.ok !== true);
   let verdict;
   if (failed.length > 0) verdict = 'fail';
@@ -88,8 +112,8 @@ export function buildVerdict(input) {
 
   // ---- El ledger se toca SOLO si la factura pasó. Una en revisión puede
   // volver legítimamente después de intervención humana.
-  if (persist && verdict === 'pass' && typeof invoiceNumber === 'string' && invoiceNumber !== '') {
-    ledger[invoiceNumber] = {
+  if (persist && verdict === 'pass' && key !== null && key !== '') {
+    ledger[key] = {
       seenAt: now,
       docId: docId === undefined ? null : (typeof docId === 'string' ? docId : docIdHex(docId)),
     };
