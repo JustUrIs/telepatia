@@ -6,8 +6,8 @@ sin esperar a nadie:
 - `TAREAS.md` — el plan completo. Tus tareas son **T-01 a T-10** (§4, "BLOQUE A").
 - `src/shared/contract.js` — el **contrato congelado**. No lo modifiques sin
   avisar: el Bloque B codifica contra este mismo archivo.
-- `fixtures/` — los datos compartidos. `verdict-sample.json` es el que consume
-  **T-10** para renderizar el dictamen sin depender del Bloque B.
+- `fixtures/` — los datos compartidos. `verdict-{pass,fail,review}.json` son los que consume
+  **T-10** para renderizar los tres estados del dictamen sin depender del Bloque B.
 - `package.json` — `npm install` y listo.
 
 ## Lo primero
@@ -24,7 +24,7 @@ los dos bloques se tocan, el cruce va **por fixture**:
 
 | Necesitás | Leé | NO importes |
 |---|---|---|
-| un `Verdict` para renderizar (T-10) | `fixtures/verdict-sample.json` | `src/audit/verdict.js` |
+| un `Verdict` para renderizar (T-10) | `fixtures/verdict-{pass,fail,review}.json` | `src/audit/verdict.js` |
 | ver la forma de un `Transaction` (T-08) | `fixtures/statement-normalized.json` | nada del Bloque B |
 
 Si en algún momento necesitás importar del Bloque B, pará y hablalo: significa
@@ -37,6 +37,15 @@ T-01 → T-02 → T-03 → T-04 son el protocolo óptico y van encadenadas (cada
 extiende `src/optical/protocol.js`). T-07 y T-08 (CSV) son independientes: si te
 trabás en el protocolo, arrancá por ahí. T-05/T-06 (adaptadores QR) necesitan
 `npm install` hecho. T-09/T-10 (UI) al final, porque consumen lo anterior.
+
+## Esto ya pasó por dos auditorías
+
+El plan que tenés en mano se revisó con dos agentes que intentaron ejecutarlo, y se corrigieron
+17 cosas: el contrato pegado en el documento estaba desincronizado del archivo real, el fixture
+de documento se comprimía a 883 bytes y volvía tautológicos tres tests, faltaban sinónimos sin
+los cuales T-08 no podía pasar su propio test, y la capacidad de QR que afirmaba era falsa por
+dos versiones. Si igual encontrás algo que no cierra, **avisá antes de inventar una decisión**:
+cada supuesto no compartido es un desfase que aparece el último día.
 
 ## Definición de "hecho"
 

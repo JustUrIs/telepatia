@@ -73,9 +73,26 @@ entre bloques.
 
 ## 3. Contrato congelado (la regla anti-bloqueo)
 
-Esto es lo que hace posible que dos personas codifiquen desde el minuto uno. **Copiar tal cual
-a `src/shared/contract.js` antes de empezar.** Ambos bloques importan de acá y de ningún otro
-lado cruzado.
+Esto es lo que hace posible que dos personas codifiquen desde el minuto uno.
+
+> **El contrato NO se copia de este documento: ya vive en `src/shared/contract.js`, en la rama.**
+> Una versión anterior de esta sección tenía el código pegado y se desincronizó del archivo real
+> (le faltaban `FAILURE_CODES`, `docIdHex`, `toCents`, `isCheckResult`, `isFailure`, y su
+> `runPaths` escribía en `runs/1960806794` donde el archivo escribe en `runs/74df898a`). Dos devs
+> habrían construido contratos distintos. **La fuente de verdad es el archivo**; abajo va solo el
+> índice de lo que exporta.
+
+| Export | Para qué | Lo usa |
+|---|---|---|
+| `STAGES` | etapas del pipeline, en orden (incluye `csv`) | T-08, T-20 |
+| `FAILURE_CODES` | códigos de fallo que la UI sabe renderizar | T-08, T-10 |
+| `docIdHex` / `runPaths` | rutas canónicas de una corrida | T-04, T-10, T-18 |
+| `LEDGER_PATH` | ledger de duplicados | T-18 |
+| `toCents` | dinero en centavos enteros | T-16 |
+| `BACKEND_METHODS` / `isBackend` | interfaz de inferencia | T-11, T-12 |
+| `isOcrBlock` / `isTransaction` / `isCheckResult` / `isVerdict` / `isFailure` | validadores de forma | todos |
+
+Ambos bloques importan de ahí y de ningún otro lado cruzado.
 
 ```js
 // src/shared/contract.js
@@ -139,13 +156,13 @@ la regla de oro no se sostiene.
 
 | Archivo | Contenido | Lo consume |
 |---|---|---|
-| `fixtures/document-small.bin` | ~40 KB arbitrarios | T-02, T-03, T-04 |
+| `fixtures/document-small.bin` | **36.000 B incompresibles** (xorshift32, semilla fija). A `chunkSize=900` → 40 chunks y 5 ventanas. **No lo reemplaces por datos compresibles**: la versión anterior era una rampa que `deflateRaw` bajaba a 883 B, o sea `total=1`, y volvía tautológicos los tests de T-02, T-03 y T-04 | T-02, T-03, T-04, T-09 |
 | `fixtures/ocr-invoice-clean.json` | `OcrBlock[]` de una factura legible | T-14, T-15, T-16 |
 | `fixtures/ocr-invoice-dirty.json` | igual, con ruido de OCR real (`O`↔`0`, cortes) | T-19 |
 | `fixtures/ocr-invoice-injected.json` | igual, con inyección de prompt embebida | T-19 |
 | `fixtures/statement.csv` | extracto bancario crudo y sucio | T-07, T-08 |
 | `fixtures/statement-normalized.json` | `Transaction[]` canónico | **T-17** (rompe la dependencia cruzada) |
-| `fixtures/verdict-sample.json` | `Verdict` de ejemplo, con los 3 estados | **T-10** (rompe la dependencia cruzada) |
+| `fixtures/verdict-pass.json`<br>`fixtures/verdict-fail.json`<br>`fixtures/verdict-review.json` | **un archivo por estado**, cada uno coherente con la regla de T-18 (check en `false` → `fail`; `ungrounded` o sin match → `review`; todo bien → `pass`) | **T-10** (rompe la dependencia cruzada) |
 
 ---
 
@@ -169,7 +186,10 @@ Convención de test: todos se corren con `node --test <archivo>` y deben termina
 - **Archivos:** crear `src/optical/protocol.js`, `test/t01-header.test.js`
 - **Especificación técnica:** constantes `MAGIC` (0x41475031 = `"AGP1"`), `VERSION = 1`,
   `HEADER_LEN = 16`, `KIND = {MANIFEST:1, DATA:2, PARITY:3}`. Función interna
-  `packHeader(kind, docId, index, total, payloadLen)` → `Buffer` de 16 bytes big-endian.
+  `packHeader(kind, docId, index, total, payloadLen)` → `Buffer` de 16 bytes big-endian, con
+  **este layout exacto** (el orden no era deducible, y sin él dos implementaciones divergen):
+  offset 0 `u32` magic · 4 `u8` version · 5 `u8` kind · 6 `u32` docId · 10 `u16` index ·
+  12 `u16` total · 14 `u16` payloadLen.
   Export `parseFrame(bytes)` → `{kind, docId, index, total, payload}` | `{unsupportedVersion}` |
   `null`. **Nunca lanza**: el receptor ve cualquier QR que caiga en cuadro, incluido el de una
   vidriera. Rechaza si `bytes.length !== HEADER_LEN + payloadLen`.
@@ -184,8 +204,12 @@ Convención de test: todos se corren con `node --test <archivo>` y deben termina
   → `{docId, manifest, frames:{manifest, data[], parity[]}}`. `docId` = primeros 4 bytes del
   SHA-256 del documento **en claro** leídos como u32 BE. Comprime con `deflateRawSync` **solo si
   el resultado es más chico**. Manifest en JSON: `{v, sha256, length, bodyLength, chunkSize,
-  total, parityWindow, compression, name, mime}`. Lanza si el documento está vacío o si
-  `total > 65535`.
+  total, parityWindow, compression, name, mime}`, con estos formatos: `v = 1`; `sha256` en
+  **hex minúscula de 64 chars, del documento EN CLARO** (no del cuerpo comprimido);
+  `compression` es `0` = ninguna, `1` = `deflateRaw`; `length` es el largo en claro y
+  `bodyLength` el del cuerpo emitido. Como `docId` son los primeros 4 bytes de ese sha256 leídos
+  como u32 BE, vale siempre `sha256.slice(0,8) === docIdHex(docId)`. Lanza si el documento está
+  vacío o si `total > 65535`.
 - **Test de aceptación:** `node --test test/t02-encode.test.js` — con `fixtures/document-small.bin`
   verifica `total === ceil(bodyLength/chunkSize)`, que el manifest parsea, que un documento de
   ceros comprime (`compression === 1`) y que uno aleatorio no.
@@ -196,8 +220,10 @@ Convención de test: todos se corren con `node --test <archivo>` y deben termina
 - **Especificación técnica:** en `encodeDocument`, generar un frame `PARITY` por ventana de
   `parityWindow` chunks: XOR de los chunks de la ventana **rellenados a `chunkSize`**. Export
   `carousel({frames})` como **generador infinito**: manifest primero, después data intercalada
-  con la paridad de su ventana, y el manifest reinyectado cada 12 frames para que un receptor
-  que entra tarde enganchе rápido.
+  con la paridad de su ventana. El **ciclo** queda definido así, y de acá sale el `cycleFrames`
+  que T-09 reporta: `cycleFrames = 1 + total + ceil(total / parityWindow)`. Encima de eso, el
+  manifest se **reinyecta cada 12 frames emitidos** (contando TODOS los frames, no solo los de
+  data) para que un receptor que entra tarde engancha rápido.
 - **Test de aceptación:** `node --test test/t03-carousel.test.js` — toma los primeros 200 frames
   del generador, verifica que el primero sea `MANIFEST`, que aparezca un `MANIFEST` al menos
   cada 12, que todo índice de data del 0 al total-1 aparezca en un ciclo, y que la paridad de la
@@ -207,12 +233,21 @@ Convención de test: todos se corren con `node --test <archivo>` y deben termina
 - **Asignado a:** Dev 1 / Bloque A
 - **Archivos:** editar `src/optical/protocol.js`, crear `test/t04-decoder.test.js`
 - **Especificación técnica:** clase `FrameDecoder` con `push(bytes)`, getters `complete` y
-  `progress`, `assemble()` → `{document, manifest}`, `reset()`, y `stats`
+  `progress` (**fracción `0..1`**), `assemble()` → `{document, manifest}` (descomprime con
+  `inflateRawSync` si `manifest.compression === 1`), `reset()`, y `stats`
   `{accepted, duplicate, foreign, recovered}`. Un `docId` distinto **reinicia todo** (dos
   documentos nunca se fusionan, porque el docId sale del hash del contenido). `#recover()` en
   bucle: si a una ventana le falta exactamente un chunk y tenemos su paridad, el faltante es el
   XOR; truncar al largo real (el último chunk es más corto). `assemble()` lanza si el largo o el
   SHA-256 no coinciden.
+  **Tres validaciones que parecen de más y no lo son** — cada una es un agujero que una auditoría
+  encontró en esta misma tarea: (a) una vez que hay manifest, todo frame se cruza contra él
+  (`f.total === manifest.total`, `index < manifest.total`, y el largo de payload esperado), porque
+  un frame trae su PROPIO `total` y uno espurio con `index=7/total=8` entra en un stream de 3
+  chunks y deja `complete` en `true` con un chunk ausente; (b) el manifest se acepta solo si
+  `sha256.slice(0,8)` coincide con el `docId` que lo transporta, o un manifest forjado que llega
+  primero gana y el legítimo se descarta como duplicado; (c) los contadores de `stats`
+  **sobreviven al `reset()`**, o las métricas de campo no sirven para nada.
 - **Test de aceptación:** `node --test test/t04-decoder.test.js` — alimenta todos los frames
   desordenados y verifica que el documento reconstruido sea idéntico al original; después repite
   **omitiendo un chunk de cada ventana** y verifica que `stats.recovered > 0` y que el documento
@@ -227,18 +262,31 @@ Convención de test: todos se corren con `node --test <archivo>` y deben termina
   `matrixToPng(matrix, scale)` → `Buffer`. Export `pickVersion(chunkSize)` → la versión mínima
   de QR que aguanta `chunkSize + 16` bytes al ECC dado, para que `chunkSize` de T-02 y la
   capacidad real no se desincronicen.
+  **Verificado ejecutando la lib, para que no lo descubras vos:** 916 B en modo byte a ECC L
+  entran en **V21 = 101 módulos** (V21 tope 929 B; V20 no alcanza). El API público de `qrcode` no
+  expone ni el render de una matriz ya hecha ni la tabla de capacidades, así que hace falta
+  deep-import de API privada — comprobado que funciona: `qrcode/lib/renderer/png.js` →
+  `renderToBuffer({modules:{size,data}}, {scale, margin})`, y `qrcode/lib/core/version.js` +
+  `mode.js` + `error-correction-level.js` → `getCapacity(21, ECLevel.L, Mode.BYTE) === 929`.
+  No hay campo `exports` en su package.json, así que está permitido, pero es API sin garantía de
+  semver: que no salga de este archivo.
 - **Test de aceptación:** `node --test test/t05-render.test.js` — verifica que `frameToMatrix`
-  de un frame de 916 bytes dé una matriz cuadrada de lado esperado, que `matrixToPng` empiece con
-  la firma PNG `89 50 4E 47`, y que `pickVersion(900)` devuelva una versión cuya capacidad byte
-  sea ≥ 916.
+  de un frame de 916 bytes dé una matriz cuadrada de **lado 101**, que `matrixToPng` empiece con
+  la firma PNG `89 50 4E 47` y que su ancho declarado corresponda a lado × escala + quiet zone,
+  y que `pickVersion(900)` devuelva **21**, cuya capacidad byte (929) es ≥ 916.
 
 #### `[T-06]` Adaptador de escaneo QR
 - **Asignado a:** Dev 1 / Bloque A
 - **Archivos:** crear `src/optical/scan.js`, `test/t06-scan.test.js`
 - **Especificación técnica:** único archivo que importa `jsqr`. Export
   `scanRgba(data, width, height)` → `Uint8Array | null` con los bytes crudos del frame
-  (`inversionAttempts: 'dontInvert'` por velocidad). Export `ScanLoop` que recibe un proveedor
-  de frames y empuja a un `FrameDecoder`, con contadores `{frames, hits, misses}`. **Prohibido**
+  (`inversionAttempts: 'dontInvert'` por velocidad). Acepta `Uint8Array` **y
+  `Uint8ClampedArray`** — que es lo que devuelve `getImageData`; excluirlo hace que el tipo
+  nativo del canvas falle en silencio. Export `ScanLoop` con **esta firma**, que T-10 consume:
+  `new ScanLoop(provider, decoder)` donde `provider` es `() => ({rgba, width, height} | null)`
+  síncrono (`null` = sin señal) y `decoder` es `{push(bytes) => boolean, complete: boolean}`;
+  métodos `.tick() => boolean`, `.run(maxTicks) => boolean`, `.stop()`; y
+  `.stats = {frames, hits, misses, novel, providerErrors}`. **Prohibido**
   que este archivo conozca el layout del header — solo mueve bytes.
 - **Test de aceptación:** `node --test test/t06-scan.test.js` — round-trip sin cámara: renderiza
   un frame con T-05, lo convierte a RGBA en memoria, lo pasa por `scanRgba` y verifica que los
@@ -260,16 +308,26 @@ Convención de test: todos se corren con `node --test <archivo>` y deben termina
 - **Asignado a:** Dev 1 / Bloque A
 - **Archivos:** crear `src/csv/normalize.js`, `test/t08-normalize.test.js`
 - **Especificación técnica:** `normalize(rows)` → `{transactions: Transaction[], rejected: Failure[]}`.
-  Mapea encabezados por sinónimos (`fecha|date|f. valor`, `importe|amount|monto`,
-  `concepto|description|detalle`). Fechas: acepta `DD/MM/YYYY`, `YYYY-MM-DD`, `DD-MM-YY` y
-  normaliza a ISO `YYYY-MM-DD`. Montos: acepta `1.234,56` y `1,234.56` — **decide por la
+  Mapea encabezados por sinónimos: `fecha|date|f. valor`, `importe|amount|monto`,
+  `concepto|description|detalle`, **`moneda|currency|divisa`** y **`referencia|ref|comprobante`**
+  — los dos últimos son obligatorios: `isTransaction` exige `currency` de 3 chars, así que sin
+  ese sinónimo la tarea no puede pasar su propio test. Si la columna de moneda no existe, la fila
+  va a `rejected`; no se inventa un default. Fechas: acepta `DD/MM/YYYY`, `YYYY-MM-DD`, `DD-MM-YY` y
+  normaliza a ISO `YYYY-MM-DD`, con **pivote de siglo 70** para `DD-MM-YY` (`<70` → 20xx,
+  `>=70` → 19xx; el fixture fija `15-07-26` → `2026-07-15`). Montos: acepta `1.234,56` y `1,234.56` — **decide por la
   posición del último separador**, no por locale global; paréntesis y sufijo `-` significan
   negativo. Toda fila que no normalice va a `rejected` con motivo, **nunca se descarta en
-  silencio**. La salida debe pasar `isTransaction` del contrato.
+  silencio**. Cada rechazo es un `Failure` del contrato: `{stage: 'csv', code:
+  FAILURE_CODES.malformedRow, message}` — esa etapa y ese código existen precisamente para esto.
+  La salida debe pasar `isTransaction`.
 - **Test de aceptación:** `node --test test/t08-normalize.test.js` — verifica que
   `1.234,56` y `1,234.56` den ambos `1234.56`, que `(50,00)` dé `-50`, que las tres formas de
-  fecha den ISO, que toda salida pase `isTransaction`, y que una fila con fecha basura aparezca
-  en `rejected` con su motivo.
+  fecha den ISO, que toda salida pase `isTransaction`, y que una fila con fecha basura aparezca en
+  `rejected` con un `Failure` que pase `isFailure`. **Y la aserción que sostiene toda la
+  paralelización:** `assert.deepEqual(normalize(parseCsv(statement.csv)).transactions, ...)` contra
+  `fixtures/statement-normalized.json`. Sin eso, el Bloque A puede emitir `{fecha, monto}` donde el
+  Bloque B espera `{date, amount}`, los dos bloques pasan todos sus tests, y el desfase aparece el
+  último día.
 
 #### `[T-09]` UI del emisor: elegir archivo y emitir el carrusel
 - **Asignado a:** Dev 1 / Bloque A
@@ -288,15 +346,20 @@ Convención de test: todos se corren con `node --test <archivo>` y deben termina
 - **Asignado a:** Dev 1 / Bloque A
 - **Archivos:** crear `src/ui/receiver.html`, `src/ui/receiver.js`, `test/t10-receiver.test.js`
 - **Especificación técnica:** `getUserMedia` + `ScanLoop` de T-06 + `FrameDecoder` de T-04.
-  Barra de progreso alimentada por `decoder.progress`. Al completar, escribe
-  `runPaths(docId).document`. Export testeable `renderVerdict(verdict)` → estructura de vista, y
+  Barra de progreso alimentada por `decoder.progress`. Al completar, **ofrece el documento al usuario**
+  con un `<a download>` sobre un blob URL, usando el basename de `runPaths(docId).document` como
+  nombre sugerido. `runPaths` es la convención de rutas del Bloque B, que sí corre en Node; el
+  navegador no escribe en el filesystem y esta tarea no monta File System Access API. Export testeable `renderVerdict(verdict)` → estructura de vista, y
   `renderFailure(failure)`. **Obligatorio cubrir los tres estados** (`pass`/`fail`/`review`) más
   los tres fallos: SHA-256 no coincide, campos sin anclar, y stream de versión no soportada.
-  Consume `fixtures/verdict-sample.json` — **nunca** importa nada del Bloque B.
+  Consume `fixtures/verdict-{pass,fail,review}.json` — **nunca** importa nada del Bloque B.
 - **Test de aceptación:** `node --test test/t10-receiver.test.js` — sobre
-  `fixtures/verdict-sample.json` verifica que `renderVerdict` produzca una fila por check con su
-  evidencia, que marque visualmente los `ungrounded`, y que `renderFailure` de los tres códigos
-  dé tres mensajes distintos y no vacíos.
+  los tres fixtures de verdict verifica que **cada uno pase `isVerdict`** (aserción golden: si el
+  Bloque B cambia la forma del `Verdict`, se rompe acá y no el último día), que `renderVerdict`
+  produzca una fila por check con su evidencia, que los tres estados den título y tono distintos,
+  que marque visualmente los `ungrounded`, y que `renderFailure` de tres códigos dé tres mensajes
+  distintos y no vacíos — incluido que un `code` inexistente como `'toString'` **no** devuelva una
+  función (`Object.hasOwn`, no indexación cruda).
 
 ---
 

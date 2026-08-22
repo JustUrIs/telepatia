@@ -1,3 +1,6 @@
+> **ARCHIVADO.** Este es el plan del track de Pears, que quedó de lado al elegir QVAC
+> (una entrada por sponsor). La especificación vigente es `TAREAS.md`. No lo uses como spec.
+
 # Plan de construcción — CLI de transferencia óptica sobre Pear
 
 **Track objetivo:** 🍐 Pears Track (Aleph Hackathon 2026, sponsor Tether) — $1,000 / $500 USDt.
