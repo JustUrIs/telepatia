@@ -1,4 +1,5 @@
+*.tgz
+.claude/
+certs/
 node_modules/
 runs/
-*.tgz
-certs/
