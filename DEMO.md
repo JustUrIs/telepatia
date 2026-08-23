@@ -39,6 +39,8 @@ node --test "test/*.test.js"      # 357 tests
 | `fixtures/shop/work-order-photo.png` | la orden fotografiada con el celular, apoyada torcida |
 | `fixtures/programs/part-1837-revC.nc` | el programa correcto |
 | `fixtures/programs/part-1837-revB.nc` | el programa que hay que frenar |
+| `fixtures/programs/part-1837-revC.preflight.json` | el informe APROBADO del revC |
+| `fixtures/programs/part-1837-revB.preflight.json` | el informe BLOQUEADO del revB |
 
 El `revB` tiene **cinco errores independientes**, y son los cinco que un
 operario apurado no ve:
@@ -141,7 +143,27 @@ node scripts/serve.mjs
 ```
 
 Abrí el emisor en la compu y el receptor en el celular (las URLs las imprime el
-comando). Mandá el `.nc` aprobado por luz.
+comando).
+
+**En el emisor cargá DOS archivos:**
+
+| Campo | Archivo |
+|---|---|
+| Programa | `fixtures/programs/part-1837-revC.nc` |
+| Informe de pre-flight | `fixtures/programs/part-1837-revC.preflight.json` |
+
+Aparece el recibo en verde: **APROBADO · bytes exactos verificados**, y recién
+ahí se habilita **Emitir**.
+
+**El momento que vale la pena mostrar:** cambiá el programa por
+`part-1837-revB.nc` sin tocar el informe. El botón se apaga solo y el recibo
+dice **el archivo elegido NO es el que se aprobó: los bytes no coinciden**.
+
+> No podés aprobar uno y mandar otro. Y esto **no es una firma** — el informe es
+> un JSON sin firmar. Cierra el error humano y el cambio accidental, que es el
+> caso que pasa de verdad en un taller. Decir más que eso sería mentir.
+
+Volvé al `revC` y emitilo por luz.
 
 **Y el momento que cierra todo: apagá el wifi en cámara.** La página sigue
 andando — service worker — y la transferencia también, porque nunca usó la red.
