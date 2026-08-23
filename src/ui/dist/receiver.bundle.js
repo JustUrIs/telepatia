@@ -11196,21 +11196,49 @@ function diagnoseCamera(entorno) {
   const host = location?.hostname ?? "";
   const puerto = location?.port ? `:${location.port}` : "";
   const ruta = location?.pathname ?? "/src/ui/receiver.html";
-  if (nav?.mediaDevices?.getUserMedia) return null;
   if (!isSecureContext) {
     return {
       code: FAILURE_CODES.cameraUnavailable,
-      title: "Esta direcci\xF3n no puede usar la c\xE1mara",
-      detail: `Los browsers solo dan acceso a la c\xE1mara en contexto seguro: https con certificado confiable, o localhost. Est\xE1s en "${host}${puerto}", que no es ninguno de los dos.
-
-Si est\xE1s en la misma m\xE1quina que el servidor, abr\xED:
-http://localhost${puerto}${ruta}`
+      title: "Abr\xED la direcci\xF3n segura",
+      detail: `Esta p\xE1gina se abri\xF3 desde ${host}${puerto} sin HTTPS. Por seguridad, el tel\xE9fono no le entrega la c\xE1mara. Volv\xE9 al inicio y entr\xE1 por el enlace HTTPS. En esta misma computadora tambi\xE9n pod\xE9s abrir http://localhost${puerto}${ruta}.`
+    };
+  }
+  if (nav?.mediaDevices?.getUserMedia) return null;
+  return {
+    code: FAILURE_CODES.cameraUnavailable,
+    title: "Este navegador no entrega la c\xE1mara",
+    detail: "Abr\xED el enlace en Safari, Chrome, Edge o Firefox, fuera del navegador interno de otra aplicaci\xF3n."
+  };
+}
+function explicarErrorCamara(err, entorno = globalThis) {
+  const impedimento = diagnoseCamera(entorno);
+  if (impedimento) return impedimento;
+  const nombre = err?.name ?? "";
+  if (nombre === "NotAllowedError" || nombre === "PermissionDeniedError") {
+    return {
+      code: FAILURE_CODES.cameraUnavailable,
+      title: "La c\xE1mara est\xE1 bloqueada",
+      detail: "Toc\xE1 el candado de la barra de direcciones, permit\xED C\xE1mara y volv\xE9 a intentar."
+    };
+  }
+  if (nombre === "NotFoundError" || nombre === "DevicesNotFoundError") {
+    return {
+      code: FAILURE_CODES.cameraUnavailable,
+      title: "No encontr\xE9 una c\xE1mara",
+      detail: "Conect\xE1 o habilit\xE1 una c\xE1mara y volv\xE9 a intentar."
+    };
+  }
+  if (nombre === "NotReadableError" || nombre === "TrackStartError") {
+    return {
+      code: FAILURE_CODES.cameraUnavailable,
+      title: "Otra aplicaci\xF3n est\xE1 usando la c\xE1mara",
+      detail: "Cerr\xE1 Zoom, Meet o la app C\xE1mara y volv\xE9 a intentar."
     };
   }
   return {
     code: FAILURE_CODES.cameraUnavailable,
-    title: "Este browser no expone la c\xE1mara",
-    detail: "El origen es seguro pero navigator.mediaDevices no est\xE1 disponible. Suele pasar en webviews embebidas y en browsers viejos: prob\xE1 con Chrome o Safari."
+    title: "No pude abrir la c\xE1mara",
+    detail: "Revis\xE1 el permiso de C\xE1mara de este sitio y volv\xE9 a intentar."
   };
 }
 function downloadName(docId, nombreDelManifest) {
@@ -11233,6 +11261,7 @@ function mount(doc = globalThis.document) {
   const descarga = $("descarga");
   const resultado = $("resultado");
   const apertura = $("apertura");
+  const progresoGrande = $("progreso-grande");
   const lecturas = {
     doc: $("r-doc"),
     progreso: $("r-progreso"),
@@ -11323,6 +11352,7 @@ function mount(doc = globalThis.document) {
   function actualizarLecturas() {
     const stats = loop?.stats ?? { frames: 0, hits: 0 };
     lecturas.progreso.textContent = `${Math.round(decoder.progress * 100)}%`;
+    if (progresoGrande) progresoGrande.textContent = `${Math.round(decoder.progress * 100)}%`;
     lecturas.frames.textContent = String(stats.frames);
     lecturas.hits.textContent = String(stats.hits);
     lecturas.recuperados.textContent = String(decoder.stats.recovered);
@@ -11443,7 +11473,22 @@ function mount(doc = globalThis.document) {
   function detenerCamara() {
     for (const pista of stream?.getTracks() ?? []) pista.stop();
     stream = null;
-    botonCamara.textContent = "Encender c\xE1mara";
+    botonCamara.textContent = "Abrir c\xE1mara";
+  }
+  async function pedirCamara() {
+    const media = globalThis.navigator?.mediaDevices;
+    if (!media?.getUserMedia) throw new DOMException("c\xE1mara no disponible", "NotSupportedError");
+    try {
+      return await media.getUserMedia({
+        audio: false,
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 1280 } }
+      });
+    } catch (err) {
+      if (!["OverconstrainedError", "ConstraintNotSatisfiedError", "NotFoundError"].includes(err?.name)) {
+        throw err;
+      }
+      return media.getUserMedia({ audio: false, video: true });
+    }
   }
   botonCamara.addEventListener("click", async () => {
     if (corriendo) {
@@ -11453,25 +11498,21 @@ function mount(doc = globalThis.document) {
       return;
     }
     try {
-      stream = await globalThis.navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 1280 } }
-      });
+      stream = await pedirCamara();
+      video.srcObject = stream;
+      await video.play();
     } catch (err) {
-      const impedimento = diagnoseCamera(globalThis);
-      setEstado("sin acceso a la c\xE1mara", "error");
+      for (const pista of stream?.getTracks() ?? []) pista.stop();
+      stream = null;
+      const explicacion = explicarErrorCamara(err, globalThis);
+      setEstado(explicacion.title, "error");
       pintarFallo({
         stage: "scan",
         code: FAILURE_CODES.cameraUnavailable,
-        message: impedimento ? `${impedimento.detail}
-
-${err.name}: ${err.message}` : `${err.name}: ${err.message}
-
-${describeEnvironment(globalThis)}`
+        message: explicacion.detail
       });
       return;
     }
-    video.srcObject = stream;
-    await video.play();
     decoder.reset();
     panel.hidden = true;
     descarga.hidden = true;
@@ -11480,7 +11521,7 @@ ${describeEnvironment(globalThis)}`
     loop = new ScanLoop(tomarCuadro, decoder);
     corriendo = true;
     botonCamara.textContent = "Detener";
-    setEstado("escaneando \xB7 apunt\xE1 al c\xF3digo del emisor", "escaneando");
+    setEstado("C\xE1mara lista. Apunt\xE1 al c\xF3digo de la otra pantalla.", "escaneando");
     globalThis.requestAnimationFrame(bucle);
   });
   const entradaVeredicto = $("verdicto");
@@ -11527,12 +11568,13 @@ ${describeEnvironment(globalThis)}`
       message: impedimentoInicial.detail
     });
   } else {
-    setEstado("encend\xE9 la c\xE1mara para empezar");
+    setEstado("La c\xE1mara est\xE1 apagada.");
   }
 }
 export {
   diagnoseCamera,
   downloadName,
+  explicarErrorCamara,
   isPreflightReport,
   mount,
   renderFailure,

@@ -8,8 +8,11 @@
     "node": ">=22"
   },
   "scripts": {
+    "demo:setup": "node scripts/gen-cert.mjs",
+    "demo": "node scripts/serve.mjs",
+    "build:ui": "node scripts/bundle-ui.mjs",
     "test": "node --test \"test/*.test.js\"",
-    "test:model": "node --test \"test-model/*.test.js\"",
+    "test:model": "node --test --test-concurrency=1 \"test-model/*.test.js\"",
     "test:all": "node --test"
   },
   "dependencies": {

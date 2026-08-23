@@ -23,8 +23,16 @@ const DIR = 'certs';
 const CA_CRT = `${DIR}/telepatia-ca.crt`;
 const CA_KEY = `${DIR}/ca.key`;
 
+// En Windows, Git incluye OpenSSL pero no siempre lo agrega al PATH de
+// PowerShell. Buscarlo ahí evita que la preparación de cámara falle con ENOENT
+// en una máquina que sí tiene todo lo necesario.
+const OPENSSL = process.env.TELEPATIA_OPENSSL
+  ?? (process.platform === 'win32' && existsSync('C:/Program Files/Git/usr/bin/openssl.exe')
+    ? 'C:/Program Files/Git/usr/bin/openssl.exe'
+    : 'openssl');
+
 const openssl = (args) =>
-  execFileSync('openssl', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+  execFileSync(OPENSSL, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
 mkdirSync(DIR, { recursive: true });
 

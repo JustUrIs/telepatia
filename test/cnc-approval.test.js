@@ -11,8 +11,15 @@ import { readFileSync } from 'node:fs';
 
 import { validateApproval, sourceHash, hashCorto } from '../src/cnc/approval.js';
 
-const bytesC = readFileSync('fixtures/programs/part-1837-revC.nc');
-const bytesB = readFileSync('fixtures/programs/part-1837-revB.nc');
+// Los fixtures se guardan con LF. Un worktree de Windows creado antes de que
+// existiera .gitattributes puede conservar CRLF; reproducir la forma del repo
+// hace que la prueba sea igual a la carga de ejemplo del browser.
+const fixtureBytes = (ruta) => Buffer.from(
+  readFileSync(ruta, 'utf8').replace(/\r\n/g, '\n'),
+  'utf8',
+);
+const bytesC = fixtureBytes('fixtures/programs/part-1837-revC.nc');
+const bytesB = fixtureBytes('fixtures/programs/part-1837-revB.nc');
 const informeC = JSON.parse(readFileSync('fixtures/programs/part-1837-revC.preflight.json', 'utf8'));
 const informeB = JSON.parse(readFileSync('fixtures/programs/part-1837-revB.preflight.json', 'utf8'));
 

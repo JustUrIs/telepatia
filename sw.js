@@ -13,7 +13,7 @@
 // contenido dinámico, y todo el shell entra en un puñado de archivos — una
 // política más lista solo agregaría formas de fallar.
 
-const VERSION = 'telepatia-v8';
+const VERSION = 'telepatia-v9';
 
 /**
  * Todo lo que hace falta para que las páginas abran sin red.
@@ -31,6 +31,10 @@ const SHELL = [
   './src/ui/icon.svg',
   './src/ui/dist/sender.bundle.js',
   './src/ui/dist/receiver.bundle.js',
+  './fixtures/programs/part-1837-revC.nc',
+  './fixtures/programs/part-1837-revC.preflight.json',
+  './fixtures/programs/part-1837-revB.nc',
+  './fixtures/programs/part-1837-revB.preflight.json',
 ];
 
 /** Qué del precache no se pudo guardar, para poder decirlo en pantalla. */

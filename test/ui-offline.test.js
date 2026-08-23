@@ -48,6 +48,15 @@ test('el precache cubre las tres paginas y sus dependencias', () => {
   ]) {
     assert.ok(rutas.includes(imprescindible), `falta ${imprescindible} en el precache`);
   }
+
+  for (const ejemplo of [
+    'fixtures/programs/part-1837-revC.nc',
+    'fixtures/programs/part-1837-revC.preflight.json',
+    'fixtures/programs/part-1837-revB.nc',
+    'fixtures/programs/part-1837-revB.preflight.json',
+  ]) {
+    assert.ok(rutas.includes(ejemplo), `el caso de prueba no funciona offline: falta ${ejemplo}`);
+  }
 });
 
 test('el worker vive en la raiz: desde src/ui no alcanzaria a la portada', () => {
@@ -59,6 +68,12 @@ test('el worker vive en la raiz: desde src/ui no alcanzaria a la portada', () =>
     assert.match(html, /register\('\.\.\/\.\.\/sw\.js'/, `${pagina} no registra el worker de la raiz`);
     assert.match(html, /scope: '\.\.\/\.\.\/'/, `${pagina} no pide alcance de raiz`);
   }
+});
+
+test('la portada también instala el modo offline', () => {
+  const html = readFileSync('index.html', 'utf8');
+  assert.match(html, /register\('\.\/sw\.js'/, 'visitar solo la portada no instala el worker');
+  assert.match(html, /scope: '\.\/'/, 'la portada no pide alcance de raíz');
 });
 
 test('el install no usa cache.addAll', () => {

@@ -45,9 +45,9 @@ Ritmo de voz recomendado: **132–136 palabras por minuto**. El texto tiene apro
 | 0:45–1:07 | PERSONA + OBJETO | Manuel deja el USB frente a la laptop, pero no lo conecta. La cámara revela que es una persona común, cansada, intentando trabajar. | «Por eso estas computadoras están desconectadas. Pero igual necesitan actualizaciones. Entonces una persona cruza el límite con un USB. Dos de cada tres brechas digitales involucran a alguien sin intención maliciosa. El problema no es Manuel: es el proceso que lo obliga a decidir a ciegas.» | `68% · ELEMENTO HUMANO NO MALICIOSO` · `VERIZON DBIR 2024`; durante el USB: `82% DE LAS AMENAZAS BLOQUEADAS PODÍAN INTERRUMPIR OPERACIONES · HONEYWELL 2024` |
 | 1:07–1:12 | PERSONA | Manuel mira por primera vez a cámara. Un solo corte. | «Telepatía pone un guardián en ese último segundo.» | Logo pequeño `telepatía` |
 | 1:12–1:30 | PANTALLA REAL | QVAC procesa `work-order-photo.png` y `setup-sheet-worn.png`. Mostrar el resultado real: confundió `C` con `€`, confianza `0,43`. La placa roja dice revisión humana, no error fatal. Después, corte a la extracción limpia ya medida. | «Con QVAC, una inteligencia artificial local, leemos esta orden torcida y esta hoja gastada. Encuentra versión, máquina, herramientas y límites sin subir un píxel. Pero la IA no autoriza. Reglas auditables comparan el papel con el programa.» | `QVAC · IA LOCAL` · `NO PUDO LEER “C” CON CONFIANZA` · `PIDE REVISIÓN · NO ADIVINA` · después `LA IA LEE · LAS REGLAS DECIDEN` |
-| 1:30–1:46 | PANTALLA REAL | Replay instantáneo de Rev C: verde. Replay de Rev B: rojo y cinco diferencias traducidas. Luego, en el emisor, informe C + programa B: botón deshabilitado. | «C: todo coincide. Listo. B: frenado. Versión vieja. Herramienta ausente. Punto incorrecto. Dos velocidades peligrosas. Si apruebo C e intento mandar B, el botón se bloquea. El permiso pertenece a esos bytes exactos.» | `LISTO PARA ENVIAR` → `NO INICIES LA MÁQUINA` → `ARCHIVO DISTINTO · EMISIÓN BLOQUEADA` |
+| 1:30–1:46 | PANTALLA REAL | Pulsar `Caso aprobado`: verde. Pulsar `Caso bloqueado`: rojo y cinco diferencias traducidas. Los archivos se cargan como parejas reales, sin selectores ni cortes. | «C: todo coincide. Listo. B: frenado. Versión vieja. Herramienta ausente. Punto incorrecto. Dos velocidades peligrosas. No alcanza con mover un archivo: primero hay que demostrar que es el correcto.» | `APROBADO · ES EL ARCHIVO CORRECTO` → `BLOQUEADO` |
 | 1:46–1:50 | PERSONA · MACRO | La mano toma el pendrive y lo retira definitivamente del cuadro. Un clic seco. | «Ahora eliminamos el pendrive.» | Sin texto. Dos cuadros de negro al final. |
-| 1:50–2:08 | AMBAS · TOMA ÚNICA | Los dos equipos en el mismo plano. Apagar Wi‑Fi en ambos. Cargar Rev C + informe C. Pulsar Emitir. Dejar **dos segundos sin voz** mientras aparecen los QR. El receptor completa y verifica. No cortar desde Wi‑Fi apagado hasta verificado. | *Dos segundos de silencio.* «Apagamos Wi‑Fi. Sin cable, Bluetooth ni radio. El archivo aprobado se convierte en QR dinámicos. Cada imagen lleva un pedazo. La cámara los reúne y verifica cada byte. El archivo cruza como luz.» | `WI‑FI APAGADO` → `SIN RED · SIN CABLE · SIN USB` → `BYTES VERIFICADOS` |
+| 1:50–2:08 | AMBAS · TOMA ÚNICA | Los dos equipos en el mismo plano. Apagar Wi‑Fi en ambos. Pulsar `Caso aprobado` y luego `Emitir por luz`. Dejar **dos segundos sin voz** mientras aparecen los QR. El receptor completa y verifica. No cortar desde Wi‑Fi apagado hasta verificado. | *Dos segundos de silencio.* «Apagamos Wi‑Fi. Sin cable, Bluetooth ni radio. El archivo aprobado se convierte en QR dinámicos. Cada imagen lleva un pedazo. La cámara los reúne y verifica cada byte. El archivo cruza como luz.» | `WI‑FI APAGADO` → `SIN RED · SIN CABLE · SIN USB` → `BYTES VERIFICADOS` |
 | 2:08–2:25 | GRÁFICA | Tres columnas simples: kiosco/USB, puerta de hardware, Telepatía. Las dos primeras protegen el canal; la tercera agrega papel + máquina + archivo. | «Hoy se escanea el USB o se compra hardware para cuidar el camino. Telepatía cuida antes el significado: no sólo “¿está limpio?”, sino “¿es el archivo exacto para esta máquina y este trabajo?”.» | `CANAL SEGURO` + `CONTEXTO CORRECTO` |
 | 2:25–2:44 | GRÁFICA + PERSONA | El QR se desvanece. Quedan tres capas que se acumulan: reglas, casos comprobados, flujo de aprobación. Después aparecen fábrica, energía, agua, nuclear y defensa. | «El QR no es el moat; es la magia visible. La ventaja está en las reglas de cada máquina, los errores comprobados y el flujo de aprobación. Empezamos en fábricas; seguimos con energía, agua, nuclear y defensa.» | `EL QR SE COPIA` · `EL CONOCIMIENTO OPERATIVO SE ACUMULA` |
 | 2:44–3:00 | PERSONA | Primer plano. Los equipos quedan desenfocados detrás. Mirar al jurado, no a la pantalla. La música desaparece. Terminar y sostener la mirada un segundo. | «El secreto es que el sistema aislado nunca estuvo sin entradas. La entrada era invisible. Telepatía la vuelve entendible: la IA lee, las reglas deciden y la luz lo lleva.» | `LA IA LEE` → `LAS REGLAS DECIDEN` → `LA LUZ LO LLEVA` |
@@ -201,10 +201,10 @@ Salida: `NO APRIETES CYCLE START`. Traducir al costado, sin tapar la terminal:
 ### 4. Archivo aprobado distinto del elegido
 
 1. Abrir el emisor.
-2. Cargar `part-1837-revB.nc`.
-3. Cargar `part-1837-revC.preflight.json`.
-4. Grabar `el archivo elegido NO es el que se aprobó` y el botón deshabilitado.
-5. Cambiar a `part-1837-revC.nc` y grabar `APROBADO · bytes exactos verificados`.
+2. Pulsar `Caso bloqueado` y grabar `BLOQUEADO` con el botón deshabilitado.
+3. Pulsar `Caso aprobado` y grabar `APROBADO · ES EL ARCHIVO CORRECTO`.
+4. Para la prueba extra de archivo cambiado, abrir `Cargar mis propios archivos`: elegir
+   `part-1837-revB.nc` con `part-1837-revC.preflight.json` y grabar el bloqueo.
 
 ### 5. Transferencia real
 
@@ -217,73 +217,36 @@ mismo plano. Secuencia obligatoria, sin cortes:
 
 1. mostrar ambos equipos;
 2. apagar Wi‑Fi en ambos;
-3. mostrar `offline listo`;
-4. cargar programa C + informe C;
-5. pulsar Emitir;
+3. mostrar `Disponible sin conexión`;
+4. pulsar `Caso aprobado`;
+5. pulsar `Emitir por luz`;
 6. mostrar QR, progreso y final verificado.
 
 Grabar cinco tomas. Elegir la más clara, no necesariamente la primera.
 
-## Montaje con Motion para hacer el menor trabajo posible
+## Montaje sin pagar otra herramienta
 
-Motion puede montar, subtitular y generar las transiciones; no debe inventar la evidencia
-del producto. Conexión MCP: `https://mcp.motion.so/mcp`. Requiere OAuth, assets subidos y
-créditos. No activar auto-topup.
+Motion queda afuera. El video se puede terminar con cualquier editor que ya tengas o con
+uno gratuito. No hace falta generar escenas nuevas: el valor está en la actuación, las
+capturas reales y una toma continua del QR funcionando.
 
-Subir:
+Orden de trabajo mínimo:
 
-- voz master;
-- siete tomas humanas;
-- cinco capturas reales;
-- logo;
-- este storyboard;
-- las dos imágenes industriales sintéticas.
+1. Grabar primero la voz completa con el cronómetro a la vista. Esa voz manda.
+2. Poner las tomas reales encima siguiendo el storyboard, sin cortar todavía cada silencio.
+3. Agregar subtítulos automáticos y corregir solamente nombres, cifras y “Telepatía”.
+4. Usar tres placas simples, sin animación compleja:
+   `LA IA LEE` → `LAS REGLAS DECIDEN` → `LA LUZ LO LLEVA`.
+5. Mantener intacta la toma continua desde que se apaga Wi-Fi hasta que aparece el archivo
+   verificado. Esa es la prueba; ningún efecto debe taparla.
+6. Recortar respiraciones hasta cerrar en `02:59.5`. Nivelar la voz y exportar 1080p.
 
-Prompt maestro para `create_video`:
+Lenguaje visual: fondo carbón, papel cálido, rojo solo para peligro, verde solo para
+aprobación y azul frío para el paso por luz. Nada de hackers, lluvia de código, hologramas,
+interfaces inventadas, clientes falsos ni supuestos despliegues en fábricas.
 
-```text
-Create one 16:9 Spanish-language film, exactly three minutes after final trim, titled
-“UNA MANO”. It is both the startup pitch and the product demo.
-
-The supplied human Spanish voiceover is the master clock. Never rewrite, translate, clone,
-or replace it. Follow the supplied storyboard timings exactly.
-
-The visual language is a restrained industrial thriller: charcoal background, warm white
-paper, signal red only for risk, green only for approval, cold white-blue only for optical
-transfer. IBM Plex Sans for titles and IBM Plex Mono for evidence. No cyberpunk, hackers,
-code rain, holograms, fake dashboards, fake customers, or fake factory deployment.
-
-Treat supplied product recordings as locked evidence. Never redraw their UI or generate
-text inside them. Keep the QVAC run labelled “CORRIDA REAL · ACELERADA”. Show its honest
-low-confidence revision result and the human-review response. Preserve the real Rev C
-approval, Rev B block, file/report mismatch and exact-byte approval.
-
-The QR transfer is sacred evidence. Keep one uninterrupted wide shot beginning before
-Wi-Fi is disabled on both devices and ending after byte verification. Do not replace,
-simulate, crop, or speed-ramp the QR frames. Preserve two seconds of silence when the QR
-first appears.
-
-Use generated imagery only as metaphor: a stopped production line, a turbine, an electric
-grid and a centrifuge cross-section. Never imply Telepatía is deployed at a real plant.
-Sources appear as small clean footnotes outside the product UI.
-
-End on the human presenter in silence, with these three cards only:
-LA IA LEE
-LAS REGLAS DECIDEN
-LA LUZ LO LLEVA
-```
-
-Después del primer montaje, pedir un solo follow-up:
-
-```text
-Lock all real product clips. Remove every invented interface, customer, factory claim and
-technical caption. Make the opening hand simpler and tenser. Keep the human face for only
-the 1:07 reveal and final close. Ensure the film ends by 02:59.5 and all Spanish captions
-remain verbatim.
-```
-
-El trim final, las comas de subtítulos y el nivel de audio se corrigen en CapCut, DaVinci
-o Premiere; no gastar otra generación por cambios de segundos.
+Si el editor ofrece subtítulos o limpieza de voz automática, usarlos. Si esas funciones
+piden pago, saltarlas: subtítulos simples y audio limpio valen más que un efecto genérico.
 
 ## Las cifras que sí sobreviven una repregunta
 
