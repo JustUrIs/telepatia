@@ -26,6 +26,7 @@
       <button class="accion" id="camara" style="margin-top:0">Encender cámara</button>
     </div>
 
+    <p class="estado estado-mini" id="offline" data-tono="idle">comprobando modo offline…</p>
     <p class="estado" id="estado">encendé la cámara para empezar</p>
 
     <div>
@@ -66,9 +67,30 @@
   import { mount } from './dist/receiver.bundle.js';
   mount(document);
 
-  // Sin esto, una app para mover archivos sin red necesitaría red para abrirse.
-  navigator.serviceWorker?.register('./sw.js', { scope: './' })
-    .catch((err) => console.warn('[telepatia] service worker no registrado:', err.message));
+  // El estado del modo offline va a la vista, no a la consola: en un celular
+  // nadie abre devtools, y "no anda" sin motivo es peor que no tenerlo.
+  const marcar = (texto, tono) => {
+    const el = document.getElementById('offline');
+    if (!el) return;
+    el.textContent = texto;
+    el.dataset.tono = tono;
+  };
+
+  if (!('serviceWorker' in navigator)) {
+    marcar('offline no disponible en este browser', 'error');
+  } else {
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .then(() => marcar('offline listo · funciona sin red', 'ok'))
+      .catch((err) => {
+        // Causa numero uno: certificado autofirmado. Chrome no registra
+        // service workers en un origen con error de certificado, aunque hayas
+        // tocado "continuar de todos modos".
+        const causa = window.isSecureContext
+          ? err.message
+          : 'el origen no es un contexto seguro';
+        marcar('offline no disponible: ' + causa, 'error');
+      });
+  }
 </script>
 
 </body>

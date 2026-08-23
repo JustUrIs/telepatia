@@ -614,3 +614,5 @@ button.accion:disabled {
 }
 
 .resultado .descarga { margin: 20px 22px 24px; }
+
+.estado-mini { font-size: 9.5px; letter-spacing: 0.16em; padding: 7px 10px; }
