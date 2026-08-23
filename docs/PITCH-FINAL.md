@@ -20,55 +20,55 @@ tipo Jony Ive, la experiencia completa se reduce a una acción comprensible:
 
 ## Guion hablado en inglés
 
-Este texto tiene aproximadamente 360 palabras. A 130–135 palabras por minuto,
+Este texto tiene aproximadamente 330 palabras. A 120–125 palabras por minuto,
 con las pausas visuales del QR, ocupa tres minutos. No acelerarlo: el silencio de
 dos o tres segundos mientras aparece el resultado forma parte del pitch.
 
-> An AI agent should never control a half-million-dollar machine. It should stop
-> the wrong file before a human presses Cycle Start.
+> AI should never control a half-million-dollar machine. It should stop the
+> wrong file before Cycle Start.
 >
-> Today, a CNC operator reconciles a work order and setup sheet against G-code.
-> One character — Revision B instead of C — can scrap 24 parts. An unmounted T7
-> can crash the spindle.
+> Today, a CNC operator manually reconciles work orders and setup sheets against
+> G-code. One character — Revision B instead of C — can scrap 24 parts or crash
+> a spindle.
 >
-> Here is the air-gap paradox. Stuxnet spread through removable drives and
-> manipulated uranium centrifuges. Disconnecting the network never removed the
-> need to put work in; we outsourced ingress to a human carrying a tiny
-> computer: a USB drive.
+> The air-gap paradox: disconnecting the network never removed the need to put
+> work in. It outsourced ingress to a human carrying a USB — the path Stuxnet
+> exploited.
 >
-> The stakes are physical. Siemens estimates an hour of automotive downtime at
-> 2.3 million dollars. Honeywell found that 82 percent of USB-borne malware
-> blocked in industrial sites was capable of operational disruption.
+> The stakes are physical. Automotive downtime can cost 2.3 million dollars per
+> hour. Honeywell found 82 percent of blocked USB threats could disrupt OT.
 >
 > Telepatía is an AI preflight gate, followed by an optical input channel.
 >
-> QVAC OCR reads this worn setup sheet and work order. A local, quantized Qwen3
-> 4B extracts revision, machine, tools, offset, and limits. Every value must
-> point back to document evidence; low confidence on critical fields stops approval.
+> QVAC OCR and local Qwen3 4B read this worn paperwork, extracting revision,
+> machine, tools, offset, and limits. Each value points to evidence; low
+> confidence stops approval.
 >
-> But the model never decides. G-code is parsed by deterministic code. More code
-> compares the two sets. AI reads what is ambiguous; code owns the safety
-> verdict.
+> This became possible now because quantized local models can read messy
+> industrial documents on ordinary hardware without crossing the security
+> boundary.
+>
+> But the model never decides. Deterministic code parses G-code and compares both
+> sets. AI reads ambiguity; code owns the safety verdict.
 >
 > Here is Revision C: ready. Now Revision B: blocked — wrong revision, missing
 > T7, wrong work offset, overspeed, and excessive feed. Five mistakes caught
 > before steel moves.
 >
 > Now the magic. Wi-Fi is off. The approved file becomes dynamic QR frames. A
-> fixed camera reconstructs them with parity and verifies SHA-256. No network.
-> No removable storage. Just light.
+> fixed camera rebuilds it with parity and verifies SHA-256. No network. No USB.
+> Just light.
 >
-> Data diodes excel at telemetry out. High-assurance guards import with dedicated
-> hardware; USB kiosks manage USB. We add the semantic layer: does this payload
-> match the physical job?
+> Data diodes move telemetry out; guards and kiosks control files in. We ask:
+> does this payload match the physical job? The QR is not the moat.
+> Machine-specific policies, grounded failure cases, and integrator distribution
+> can compound with every deployment.
 >
-> Local AI is not a privacy feature here. A plant's work orders are a map of what
-> it makes and where it is vulnerable. Sending them to a cloud API defeats the
-> boundary.
+> A plant's work orders map what it makes and where it is vulnerable. Cloud
+> inference defeats the boundary.
 >
-> We start with CNC job shops, distribute through industrial integrators, and
-> expand the same gate to PLC configurations, security patches, energy, water,
-> and defense.
+> We start with CNC shops through industrial integrators, then expand to PLC
+> configurations, security patches, energy, water, and defense.
 >
 > The air gap did not eliminate ingress. It made ingress invisible. Telepatía
 > makes it understood: AI reads it, code decides, and light carries it across.
@@ -101,10 +101,29 @@ visible.
 ### ¿Cuál es el moat si cualquiera puede generar QR?
 
 El QR no es el moat. El foso se construye con los paquetes de reglas por dominio,
-el historial auditable de decisiones, la integración al proceso de change
-management y la distribución mediante integradores OT. El protocolo puede ser
-abierto; la confianza mejora cuando es auditable. La cuña inicial es CNC y la
-misma arquitectura se extiende a configuraciones de PLC y parches.
+los casos de evaluación grounded, la integración al proceso de change management
+y la distribución mediante integradores OT. El protocolo puede ser abierto; la
+confianza mejora cuando es auditable. Hoy existe el primer policy pack CNC y un
+harness adversarial: el corpus, las integraciones y el canal comercial todavía son
+una hipótesis de moat que hay que ganar. Como los documentos son sensibles, no
+prometer un data flywheel central: casos reales solo se incorporan con permiso o
+anonimización.
+
+### ¿Por qué ahora y no hace cinco años?
+
+Porque modelos locales cuantizados ya pueden convertir documentos industriales
+imperfectos en estructura utilizable sobre hardware común, sin cruzar el límite de
+seguridad. La novedad no es el QR aislado: es poder verificar significado en el
+edge antes de transferir el artefacto, a un costo y tamaño de modelo compatibles
+con la laptop del técnico.
+
+### ¿Qué tracción existe?
+
+Existe evidencia de ejecución, no tracción comercial: prototipo CNC end-to-end,
+canal óptico, harness adversarial y 370 tests no-modelo en verde en el entorno de
+demo. Todavía no hay clientes, pilotos ni ingresos documentados. El próximo hito
+es un design partner que permita medir falso approve, tasa de review, tiempo
+agregado y errores evitados.
 
 ### ¿Quién compra?
 

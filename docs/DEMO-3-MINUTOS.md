@@ -19,14 +19,14 @@ sea un truco visual, sino el último paso de una decisión segura.
 | 0:12–0:32 | Operario alternando entre tres documentos; breve corte a un USB | Reconciliación manual, Revision B/C, T7 y la lección de Stuxnet |
 | 0:32–0:46 | Texto enorme: `$2.3M / hour` y `82% disruptive` con fuente pequeña | Stakes económicos y de seguridad; una cifra por plano |
 | 0:46–1:08 | Grabación real: QVAC leyendo `setup-sheet-worn.png`; overlay `LOCAL · OCR_LATIN · QWEN3 4B Q4` | Explicar extracción local, grounding y fallo cerrado |
-| 1:08–1:25 | Diagrama de tres líneas: `messy docs → LOCAL AI`, `.nc → CODE`, `verdict → CODE` | La decisión de arquitectura que hace creíble el producto |
+| 1:08–1:25 | Diagrama de tres líneas: `messy docs → LOCAL AI`, `.nc → CODE`, `verdict → CODE` | Arquitectura + why now: modelos cuantizados ya leen localmente en hardware común |
 | 1:25–1:37 | Terminal grande: Rev C, `LISTO PARA ENVIAR` | El caso control tiene que pasar; si nada pasa, no hay producto |
 | 1:37–1:55 | Terminal grande: Rev B, `NO APRIETES CYCLE START`; aparecen cinco fallos | Clímax racional: revisión, T7, G55, RPM y feed |
 | 1:55–2:07 | Montaje de limpio, rotado, bajo contraste y ruido severo | Tres recuperan 6/6; ruido 3/6 y va a revisión. Honestidad visible |
 | 2:07–2:12 | Plano físico de los dos equipos; Wi-Fi se apaga en cámara | No usar un icono agregado en edición: mostrar el estado real |
 | 2:12–2:35 | QR cambiando en A; cámara y progreso en B; termina en `SHA-256 verificado` | No hablar durante los primeros dos segundos. Dejar que el jurado descubra la magia |
-| 2:35–2:48 | Gráfico mínimo: `telemetry OUT` / `understood artifacts IN` | Competencia: diodos/guards/USB kiosks y nuestra capa semántica |
-| 2:48–3:00 | Archivo reconstruido + plano de ambos equipos todavía offline | Frase final: `AI reads it. Code decides. Light carries it across.` |
+| 2:35–2:48 | Gráfico mínimo: `telemetry OUT` / `understood artifacts IN` | Diferencial + moat: policies, casos grounded e integradores; no el QR |
+| 2:48–3:00 | Archivo reconstruido + plano de ambos equipos todavía offline | Wedge CNC, expansión y frase final: `AI reads it. Code decides. Light carries it across.` |
 
 ## Material que hay que grabar
 
@@ -132,6 +132,8 @@ Voz:
 > Data diodes are excellent at moving telemetry out. High-assurance guards can
 > import too, with dedicated infrastructure. USB kiosks still manage USB. We add
 > the missing semantic layer: does this exact file agree with this exact job?
+> The QR is not the moat. Machine-specific policies, grounded failure cases, and
+> integrator distribution can compound with every deployment.
 
 ## Dirección y edición
 
