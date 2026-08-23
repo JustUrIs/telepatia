@@ -181,6 +181,7 @@ test('downloadName usa el basename de la ruta del Bloque B', () => {
 // ---------------------------------------------------------------------------
 
 const { diagnoseCamera } = await import('../src/ui/receiver.js');
+const { describeEnvironment } = await import('../src/ui/environment.js');
 
 const entorno = (over = {}) => ({
   isSecureContext: true,
@@ -218,4 +219,35 @@ test('diagnoseCamera no lanza con un entorno incompleto', () => {
     assert.doesNotThrow(() => diagnoseCamera(e));
     assert.equal(typeof diagnoseCamera(e).title, 'string');
   }
+});
+
+test('describeEnvironment reporta los hechos que importan, sin lanzar', () => {
+  const linea = describeEnvironment(entorno());
+  assert.match(linea, /seguro:si/);
+  assert.match(linea, /camara:si/);
+  assert.match(linea, /localhost/);
+
+  const roto = describeEnvironment({
+    isSecureContext: false,
+    navigator: { onLine: false },
+    location: { protocol: 'http:', host: '192.168.1.5:8777' },
+  });
+  assert.match(roto, /seguro:NO/);
+  assert.match(roto, /camara:NO/);
+  assert.match(roto, /red:no/);
+  assert.match(roto, /sw:no/);
+
+  for (const e of [undefined, null, {}, { navigator: null }]) {
+    assert.doesNotThrow(() => describeEnvironment(e));
+    assert.ok(describeEnvironment(e).length > 0);
+  }
+});
+
+test('describeEnvironment marca cuando se abrio desde el icono instalado', () => {
+  const app = describeEnvironment({
+    ...entorno(),
+    matchMedia: () => ({ matches: true }),
+  });
+  assert.match(app, /modo:app/);
+  assert.doesNotMatch(describeEnvironment(entorno()), /modo:app/);
 });

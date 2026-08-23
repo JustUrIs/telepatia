@@ -7,6 +7,7 @@
 import { docIdHex } from '../shared/contract.js';
 import { encodeDocument, carousel, cycleFrames, parseFrame, KIND } from '../optical/protocol.js';
 import { create } from './vendor/qrcode-core.js';
+import { describeEnvironment } from './environment.js';
 
 /** Más de esto no lo sigue ni una cámara de celular, y quema batería al pedo. */
 const FPS_MAX = 120;
@@ -341,6 +342,9 @@ export function mount(doc = globalThis.document) {
   // canvas roto, y además es el fondo contra el que se va a pintar el QR.
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const diag = $('diagnostico');
+  if (diag) diag.textContent = describeEnvironment(globalThis);
 
   setEstado('elegí un archivo para empezar');
 }

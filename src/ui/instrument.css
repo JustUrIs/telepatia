@@ -616,3 +616,14 @@ button.accion:disabled {
 .resultado .descarga { margin: 20px 22px 24px; }
 
 .estado-mini { font-size: 9.5px; letter-spacing: 0.16em; padding: 7px 10px; }
+
+/* Los hechos del entorno, a mano. En un celular nadie abre devtools: sin
+   esto, "el boton esta gris" no tiene forma de convertirse en una causa. */
+.diagnostico {
+  font-size: 9.5px;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--tinta-micro);
+  margin: 0;
+  overflow-wrap: anywhere;
+}

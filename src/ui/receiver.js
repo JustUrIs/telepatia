@@ -10,6 +10,7 @@ import { FAILURE_CODES, isVerdict, runPaths } from '../shared/contract.js';
 import { FrameDecoder } from '../optical/protocol.js';
 import { ScanLoop } from '../optical/scan.js';
 import { describePayload, formatBytes } from './preview.js';
+import { describeEnvironment } from './environment.js';
 
 /** Nombres legibles de cada check de conciliación. */
 const ETIQUETAS_CHECK = {
@@ -532,26 +533,22 @@ export function mount(doc = globalThis.document) {
       return;
     }
 
-    // El diagnóstico va primero: sin esto, un origen inseguro tira un
-    // TypeError sobre `undefined` que se reporta como "permiso denegado" y
-    // manda al usuario a revisar permisos que no tienen nada que ver.
-    const impedimento = diagnoseCamera(globalThis);
-    if (impedimento) {
-      setEstado('la cámara no está disponible acá', 'error');
-      pintarFallo({ stage: 'scan', code: impedimento.code, message: impedimento.detail });
-      return;
-    }
-
+    // Se intenta siempre, aunque el diagnóstico sea pesimista: el diagnóstico
+    // puede equivocarse y el browser es la única autoridad sobre si hay cámara.
+    // Recién si falla se usa para explicar por qué.
     try {
       stream = await globalThis.navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 1280 } },
       });
     } catch (err) {
+      const impedimento = diagnoseCamera(globalThis);
       setEstado('sin acceso a la cámara', 'error');
       pintarFallo({
         stage: 'scan',
         code: FAILURE_CODES.cameraUnavailable,
-        message: `${err.name}: ${err.message}`,
+        message: impedimento
+          ? `${impedimento.detail}\n\n${err.name}: ${err.message}`
+          : `${err.name}: ${err.message}\n\n${describeEnvironment(globalThis)}`,
       });
       return;
     }
@@ -571,12 +568,15 @@ export function mount(doc = globalThis.document) {
     globalThis.requestAnimationFrame(bucle);
   });
 
-  // Se avisa al cargar, no recién cuando el usuario toca el botón: descubrir
-  // que la dirección no sirve después de apuntar el celular es tarde.
+  const diag = $('diagnostico');
+  if (diag) diag.textContent = describeEnvironment(globalThis);
+
+  // Se avisa al cargar, pero NO se deshabilita el botón: un diagnóstico
+  // equivocado dejaría al usuario encerrado sin poder ni intentarlo. El aviso
+  // es información; la decisión de probar igual es suya.
   const impedimentoInicial = diagnoseCamera(globalThis);
   if (impedimentoInicial) {
-    botonCamara.disabled = true;
-    setEstado('la cámara no está disponible en esta dirección', 'error');
+    setEstado('la cámara puede no estar disponible acá', 'error');
     pintarFallo({
       stage: 'scan',
       code: impedimentoInicial.code,

@@ -10979,6 +10979,24 @@ function describePayload(bytes, manifest = {}) {
   return { ...base, hex: hexDump(bytes), label: "Binario" };
 }
 
+// src/ui/environment.js
+init_inject_buffer();
+function describeEnvironment(entorno) {
+  const nav = entorno?.navigator;
+  const loc = entorno?.location;
+  const host = loc?.host ?? (loc?.hostname ? `${loc.hostname}${loc.port ? `:${loc.port}` : ""}` : "?");
+  const partes = [
+    `origen ${loc?.protocol ?? "http:"}//${host}`,
+    `seguro:${entorno?.isSecureContext ? "si" : "NO"}`,
+    `camara:${nav?.mediaDevices?.getUserMedia ? "si" : "NO"}`,
+    `red:${nav?.onLine === false ? "no" : "si"}`,
+    `sw:${nav?.serviceWorker?.controller ? "activo" : "no"}`
+  ];
+  const modo = entorno?.matchMedia?.("(display-mode: standalone)")?.matches;
+  if (modo) partes.push("modo:app");
+  return partes.join(" \xB7 ");
+}
+
 // src/ui/receiver.js
 var ETIQUETAS_CHECK = {
   items_sum_subtotal: "Los \xEDtems suman el subtotal",
@@ -11370,22 +11388,21 @@ function mount(doc = globalThis.document) {
       setEstado("escaneo detenido", "idle");
       return;
     }
-    const impedimento = diagnoseCamera(globalThis);
-    if (impedimento) {
-      setEstado("la c\xE1mara no est\xE1 disponible ac\xE1", "error");
-      pintarFallo({ stage: "scan", code: impedimento.code, message: impedimento.detail });
-      return;
-    }
     try {
       stream = await globalThis.navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 1280 } }
       });
     } catch (err) {
+      const impedimento = diagnoseCamera(globalThis);
       setEstado("sin acceso a la c\xE1mara", "error");
       pintarFallo({
         stage: "scan",
         code: FAILURE_CODES.cameraUnavailable,
-        message: `${err.name}: ${err.message}`
+        message: impedimento ? `${impedimento.detail}
+
+${err.name}: ${err.message}` : `${err.name}: ${err.message}
+
+${describeEnvironment(globalThis)}`
       });
       return;
     }
@@ -11402,10 +11419,11 @@ function mount(doc = globalThis.document) {
     setEstado("escaneando \xB7 apunt\xE1 al c\xF3digo del emisor", "escaneando");
     globalThis.requestAnimationFrame(bucle);
   });
+  const diag = $("diagnostico");
+  if (diag) diag.textContent = describeEnvironment(globalThis);
   const impedimentoInicial = diagnoseCamera(globalThis);
   if (impedimentoInicial) {
-    botonCamara.disabled = true;
-    setEstado("la c\xE1mara no est\xE1 disponible en esta direcci\xF3n", "error");
+    setEstado("la c\xE1mara puede no estar disponible ac\xE1", "error");
     pintarFallo({
       stage: "scan",
       code: impedimentoInicial.code,

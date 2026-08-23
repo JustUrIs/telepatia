@@ -2257,6 +2257,23 @@ var require_qrcode = __commonJS({
 var import_qrcode = __toESM(require_qrcode(), 1);
 var create = import_qrcode.default.create;
 
+// src/ui/environment.js
+function describeEnvironment(entorno) {
+  const nav = entorno?.navigator;
+  const loc = entorno?.location;
+  const host = loc?.host ?? (loc?.hostname ? `${loc.hostname}${loc.port ? `:${loc.port}` : ""}` : "?");
+  const partes = [
+    `origen ${loc?.protocol ?? "http:"}//${host}`,
+    `seguro:${entorno?.isSecureContext ? "si" : "NO"}`,
+    `camara:${nav?.mediaDevices?.getUserMedia ? "si" : "NO"}`,
+    `red:${nav?.onLine === false ? "no" : "si"}`,
+    `sw:${nav?.serviceWorker?.controller ? "activo" : "no"}`
+  ];
+  const modo = entorno?.matchMedia?.("(display-mode: standalone)")?.matches;
+  if (modo) partes.push("modo:app");
+  return partes.join(" \xB7 ");
+}
+
 // src/ui/sender.js
 var FPS_MAX = 120;
 var FPS_DEFAULT = 10;
@@ -2494,6 +2511,8 @@ function mount(doc = globalThis.document) {
   });
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const diag = $("diagnostico");
+  if (diag) diag.textContent = describeEnvironment(globalThis);
   setEstado("eleg\xED un archivo para empezar");
 }
 export {
