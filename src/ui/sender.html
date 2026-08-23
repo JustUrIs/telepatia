@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>telepatía · emisor</title>
 <link rel="stylesheet" href="./instrument.css">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#080b0a">
+<link rel="apple-touch-icon" href="./icon.svg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23080b0a'/><rect x='3' y='3' width='4' height='4' fill='%2357e2c8'/><rect x='9' y='3' width='4' height='4' fill='%2357e2c8'/><rect x='3' y='9' width='4' height='4' fill='%2357e2c8'/><rect x='10' y='10' width='2' height='2' fill='%2357e2c8'/></svg>">
 </head>
 <body>
@@ -70,6 +73,10 @@
 <script type="module">
   import { mount } from './dist/sender.bundle.js';
   mount(document);
+
+  // Sin esto, una app para mover archivos sin red necesitaria red para abrirse.
+  navigator.serviceWorker?.register('./sw.js', { scope: './' })
+    .catch((err) => console.warn('[telepatia] service worker no registrado:', err.message));
 </script>
 
 </body>

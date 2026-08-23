@@ -477,3 +477,140 @@ button.accion:disabled {
 }
 
 .nota a { color: var(--fosforo); }
+
+/* ------------------------------------------------------------- resultado */
+
+/* El panel que aparece cuando el documento termino de llegar. Es lo primero
+   que mira alguien despues de esperar el escaneo: si dice "listo" y no muestra
+   nada, no hay forma de saber si llego lo que se mando. */
+
+.resultado {
+  border: var(--canal);
+  border-top: 3px solid var(--ok);
+  border-radius: 2px;
+  background: var(--panel-alto);
+  overflow: hidden;
+}
+
+.resultado-cab {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 18px 22px;
+  border-bottom: var(--canal);
+}
+
+.resultado-cab h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--tinta);
+  overflow-wrap: anywhere;
+}
+
+.resultado-meta {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tinta-micro);
+  margin-left: auto;
+}
+
+.preview {
+  padding: 22px;
+  display: grid;
+  place-items: center;
+  background: var(--chasis);
+  max-height: 52vh;
+  overflow: auto;
+}
+
+.preview[data-kind="text"],
+.preview[data-kind="binary"],
+.preview[data-kind="zip"] { place-items: stretch; }
+
+.preview img,
+.preview video {
+  max-width: 100%;
+  max-height: 46vh;
+  display: block;
+  border-radius: 2px;
+  /* Un damero detras: sin esto, un PNG con transparencia sobre fondo oscuro
+     parece recortado y el usuario cree que llego mal. */
+  background-color: #2a2f2d;
+  background-image:
+    linear-gradient(45deg, #1c211f 25%, transparent 25%, transparent 75%, #1c211f 75%),
+    linear-gradient(45deg, #1c211f 25%, transparent 25%, transparent 75%, #1c211f 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+.preview audio { width: 100%; }
+
+.preview iframe {
+  width: 100%;
+  height: 46vh;
+  border: 0;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.preview pre.texto,
+.preview pre.hex {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--tinta-baja);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.preview pre.hex {
+  white-space: pre;
+  overflow-x: auto;
+  font-size: 11.5px;
+  color: var(--tinta-micro);
+}
+
+.zip-resumen {
+  margin: 0 0 14px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tinta-micro);
+}
+
+.zip-lista { list-style: none; margin: 0; padding: 0; }
+
+.zip-lista li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0 7px 26px;
+  border-bottom: var(--canal);
+  font-size: 13px;
+  position: relative;
+  overflow-wrap: anywhere;
+}
+
+/* Carpeta y archivo se distinguen por marca, no solo por el nombre. */
+.zip-lista li::before {
+  position: absolute;
+  left: 4px;
+  color: var(--tinta-micro);
+}
+
+.zip-lista li[data-tipo="dir"]::before { content: "▸"; color: var(--fosforo); }
+.zip-lista li[data-tipo="file"]::before { content: "·"; }
+.zip-lista li[data-tipo="dir"] { color: var(--fosforo); }
+
+.zip-peso {
+  color: var(--tinta-micro);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.resultado .descarga { margin: 20px 22px 24px; }

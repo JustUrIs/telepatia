@@ -10819,6 +10819,166 @@ var ScanLoop = class {
   }
 };
 
+// src/ui/preview.js
+init_inject_buffer();
+var FIRMAS = [
+  { kind: "image", mime: "image/png", magic: [137, 80, 78, 71, 13, 10, 26, 10] },
+  { kind: "image", mime: "image/jpeg", magic: [255, 216, 255] },
+  { kind: "image", mime: "image/gif", magic: [71, 73, 70, 56] },
+  { kind: "image", mime: "image/bmp", magic: [66, 77] },
+  { kind: "zip", mime: "application/zip", magic: [80, 75, 3, 4] },
+  { kind: "zip", mime: "application/zip", magic: [80, 75, 5, 6] },
+  { kind: "pdf", mime: "application/pdf", magic: [37, 80, 68, 70] },
+  { kind: "archive", mime: "application/gzip", magic: [31, 139] },
+  { kind: "audio", mime: "audio/mpeg", magic: [73, 68, 51] }
+];
+var FIRMAS_CON_OFFSET = [
+  { kind: "image", mime: "image/webp", offset: 8, magic: [87, 69, 66, 80] },
+  { kind: "video", mime: "video/mp4", offset: 4, magic: [102, 116, 121, 112] }
+];
+var LIMITE_TEXTO = 8e3;
+var BYTES_HEX = 256;
+var empiezaCon = (bytes, magic, offset = 0) => bytes.length >= offset + magic.length && magic.every((b, i) => bytes[offset + i] === b);
+function sniffKind(bytes, mime = "") {
+  for (const firma of FIRMAS) {
+    if (empiezaCon(bytes, firma.magic)) {
+      return { kind: firma.kind, mime: firma.mime, sniffed: true };
+    }
+  }
+  for (const firma of FIRMAS_CON_OFFSET) {
+    if (empiezaCon(bytes, firma.magic, firma.offset)) {
+      return { kind: firma.kind, mime: firma.mime, sniffed: true };
+    }
+  }
+  if (asText(bytes) !== null) {
+    const declarado2 = String(mime).toLowerCase();
+    const mimeTexto = declarado2.startsWith("text/") || declarado2.includes("json") || declarado2.includes("xml") || declarado2.includes("csv");
+    return { kind: "text", mime: mimeTexto ? mime : "text/plain", sniffed: !mimeTexto };
+  }
+  const declarado = String(mime || "application/octet-stream");
+  const familia = declarado.split("/")[0];
+  const kind = ["image", "audio", "video"].includes(familia) ? familia : "binary";
+  return { kind, mime: declarado, sniffed: false };
+}
+function asText(bytes) {
+  if (bytes.length === 0) return "";
+  let texto;
+  try {
+    texto = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return null;
+  }
+  const muestra = texto.slice(0, 4096);
+  let control = 0;
+  for (const char of muestra) {
+    const code = char.codePointAt(0);
+    if (code < 32 && code !== 9 && code !== 10 && code !== 13) control++;
+    if (code === 127) control++;
+  }
+  return control / Math.max(1, muestra.length) > 0.02 ? null : texto;
+}
+function listZipEntries(bytes) {
+  const vista = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const EOCD = 101010256;
+  let eocd = -1;
+  const minimo = Math.max(0, bytes.length - (65535 + 22));
+  for (let i = bytes.length - 22; i >= minimo; i--) {
+    if (vista.getUint32(i, true) === EOCD) {
+      eocd = i;
+      break;
+    }
+  }
+  if (eocd === -1) throw new Error("no es un ZIP: falta el end of central directory");
+  const cantidad = vista.getUint16(eocd + 10, true);
+  let cursor = vista.getUint32(eocd + 16, true);
+  const entradas = [];
+  for (let i = 0; i < cantidad; i++) {
+    if (cursor + 46 > bytes.length) break;
+    if (vista.getUint32(cursor, true) !== 33639248) break;
+    const comprimido = vista.getUint32(cursor + 20, true);
+    const tamano = vista.getUint32(cursor + 24, true);
+    const largoNombre = vista.getUint16(cursor + 28, true);
+    const largoExtra = vista.getUint16(cursor + 30, true);
+    const largoComentario = vista.getUint16(cursor + 32, true);
+    const nombre = new TextDecoder("utf-8").decode(bytes.subarray(cursor + 46, cursor + 46 + largoNombre));
+    entradas.push({
+      name: nombre,
+      size: tamano,
+      compressedSize: comprimido,
+      directory: nombre.endsWith("/")
+    });
+    cursor += 46 + largoNombre + largoExtra + largoComentario;
+  }
+  return entradas;
+}
+function hexDump(bytes, limite = BYTES_HEX) {
+  const trozo = bytes.subarray(0, limite);
+  const lineas = [];
+  for (let i = 0; i < trozo.length; i += 16) {
+    const fila = trozo.subarray(i, i + 16);
+    const hex = [...fila].map((b) => b.toString(16).padStart(2, "0")).join(" ");
+    const ascii = [...fila].map((b) => b >= 32 && b < 127 ? String.fromCharCode(b) : ".").join("");
+    lineas.push(`${i.toString(16).padStart(8, "0")}  ${hex.padEnd(47)}  |${ascii}|`);
+  }
+  return lineas.join("\n");
+}
+function formatBytes(n) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} kB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+}
+function describePayload(bytes, manifest = {}) {
+  if (!ArrayBuffer.isView(bytes)) {
+    throw new TypeError("describePayload espera los bytes del documento");
+  }
+  const name = String(manifest.name ?? "document.bin");
+  const { kind, mime, sniffed } = sniffKind(bytes, manifest.mime ?? "");
+  const base = {
+    kind,
+    mime,
+    sniffed,
+    name,
+    size: bytes.length,
+    sizeLabel: formatBytes(bytes.length)
+  };
+  if (kind === "text") {
+    const texto = asText(bytes) ?? "";
+    return {
+      ...base,
+      text: texto.slice(0, LIMITE_TEXTO),
+      truncated: texto.length > LIMITE_TEXTO,
+      lines: texto === "" ? 0 : texto.split("\n").length,
+      label: "Texto"
+    };
+  }
+  if (kind === "zip") {
+    try {
+      const entries = listZipEntries(bytes);
+      const archivos = entries.filter((e) => !e.directory);
+      return {
+        ...base,
+        entries,
+        fileCount: archivos.length,
+        dirCount: entries.length - archivos.length,
+        uncompressedSize: archivos.reduce((suma, e) => suma + e.size, 0),
+        label: "Archivo comprimido"
+      };
+    } catch (err) {
+      return { ...base, kind: "binary", hex: hexDump(bytes), label: "Binario", zipError: err.message };
+    }
+  }
+  if (kind === "image" || kind === "video" || kind === "audio" || kind === "pdf") {
+    const etiquetas = {
+      image: "Imagen",
+      video: "Video",
+      audio: "Audio",
+      pdf: "Documento PDF"
+    };
+    return { ...base, label: etiquetas[kind] };
+  }
+  return { ...base, hex: hexDump(bytes), label: "Binario" };
+}
+
 // src/ui/receiver.js
 var ETIQUETAS_CHECK = {
   items_sum_subtotal: "Los \xEDtems suman el subtotal",
@@ -10973,6 +11133,8 @@ function mount(doc = globalThis.document) {
   const estado = $("estado");
   const panel = $("dictamen");
   const descarga = $("descarga");
+  const resultado = $("resultado");
+  const apertura = $("apertura");
   const lecturas = {
     doc: $("r-doc"),
     progreso: $("r-progreso"),
@@ -11064,6 +11226,71 @@ function mount(doc = globalThis.document) {
     lecturas.doc.textContent = decoder.docId === null ? "\u2014" : decoder.docId.toString(16).padStart(8, "0");
     barra.style.width = `${decoder.progress * 100}%`;
   }
+  function pintarResultado(bytes, manifest, url) {
+    const vista = describePayload(bytes, manifest);
+    resultado.hidden = false;
+    resultado.innerHTML = "";
+    const cabecera = doc.createElement("div");
+    cabecera.className = "resultado-cab";
+    const titulo = doc.createElement("h2");
+    titulo.textContent = vista.name;
+    const meta = doc.createElement("span");
+    meta.className = "resultado-meta";
+    meta.textContent = `${vista.label} \xB7 ${vista.sizeLabel} \xB7 ${vista.mime}`;
+    cabecera.append(titulo, meta);
+    resultado.append(cabecera);
+    const caja = doc.createElement("div");
+    caja.className = "preview";
+    caja.dataset.kind = vista.kind;
+    if (vista.kind === "image") {
+      const img = doc.createElement("img");
+      img.src = url;
+      img.alt = vista.name;
+      caja.append(img);
+    } else if (vista.kind === "video" || vista.kind === "audio") {
+      const medio = doc.createElement(vista.kind);
+      medio.src = url;
+      medio.controls = true;
+      caja.append(medio);
+    } else if (vista.kind === "pdf") {
+      const marco = doc.createElement("iframe");
+      marco.src = url;
+      marco.title = vista.name;
+      caja.append(marco);
+    } else if (vista.kind === "text") {
+      const pre = doc.createElement("pre");
+      pre.className = "texto";
+      pre.textContent = vista.truncated ? `${vista.text}
+
+\u2026 recortado, son ${vista.lines} l\xEDneas en total` : vista.text;
+      caja.append(pre);
+    } else if (vista.kind === "zip") {
+      const resumen = doc.createElement("p");
+      resumen.className = "zip-resumen";
+      resumen.textContent = `${vista.fileCount} archivo(s) \xB7 ${vista.dirCount} carpeta(s) \xB7 ${formatBytes(vista.uncompressedSize)} sin comprimir`;
+      const lista = doc.createElement("ul");
+      lista.className = "zip-lista";
+      for (const entrada of vista.entries) {
+        const item = doc.createElement("li");
+        item.dataset.tipo = entrada.directory ? "dir" : "file";
+        const nombre = doc.createElement("span");
+        nombre.textContent = entrada.name;
+        const peso = doc.createElement("span");
+        peso.className = "zip-peso";
+        peso.textContent = entrada.directory ? "" : formatBytes(entrada.size);
+        item.append(nombre, peso);
+        lista.append(item);
+      }
+      caja.append(resumen, lista);
+    } else {
+      const pre = doc.createElement("pre");
+      pre.className = "hex";
+      pre.textContent = vista.hex;
+      caja.append(pre);
+    }
+    resultado.append(caja);
+    resultado.append(descarga);
+  }
   function completar() {
     corriendo = false;
     loop?.stop();
@@ -11075,11 +11302,16 @@ function mount(doc = globalThis.document) {
       pintarFallo({ stage: "assemble", code: err.code ?? "", message: err.message });
       return;
     }
-    const blob = new Blob([armado.document], { type: armado.manifest.mime });
-    descarga.href = URL.createObjectURL(blob);
+    const bytes = new Uint8Array(armado.document);
+    const vista = describePayload(bytes, armado.manifest);
+    const blob = new Blob([bytes], { type: vista.mime });
+    const url = URL.createObjectURL(blob);
+    descarga.href = url;
     descarga.download = downloadName(decoder.docId, armado.manifest.name);
     descarga.hidden = false;
     descarga.textContent = `Guardar ${descarga.download}`;
+    pintarResultado(bytes, armado.manifest, url);
+    if (apertura) apertura.hidden = true;
     setEstado("documento completo \xB7 SHA-256 verificado", "ok");
     detenerCamara();
   }
@@ -11134,6 +11366,8 @@ function mount(doc = globalThis.document) {
     decoder.reset();
     panel.hidden = true;
     descarga.hidden = true;
+    resultado.hidden = true;
+    if (apertura) apertura.hidden = false;
     loop = new ScanLoop(tomarCuadro, decoder);
     corriendo = true;
     botonCamara.textContent = "Detener";

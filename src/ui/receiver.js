@@ -9,6 +9,7 @@
 import { FAILURE_CODES, isVerdict, runPaths } from '../shared/contract.js';
 import { FrameDecoder } from '../optical/protocol.js';
 import { ScanLoop } from '../optical/scan.js';
+import { describePayload, formatBytes } from './preview.js';
 
 /** Nombres legibles de cada check de conciliación. */
 const ETIQUETAS_CHECK = {
@@ -226,6 +227,8 @@ export function mount(doc = globalThis.document) {
   const estado = $('estado');
   const panel = $('dictamen');
   const descarga = $('descarga');
+  const resultado = $('resultado');
+  const apertura = $('apertura');
 
   const lecturas = {
     doc: $('r-doc'), progreso: $('r-progreso'), frames: $('r-frames'),
@@ -334,6 +337,90 @@ export function mount(doc = globalThis.document) {
     barra.style.width = `${decoder.progress * 100}%`;
   }
 
+  /**
+   * Pinta lo que llegó.
+   *
+   * Un archivo que se anuncia como "listo" y no se puede ver deja al usuario
+   * sin forma de saber si llegó lo que mandó: por eso acá no alcanza con el
+   * botón de descarga.
+   */
+  function pintarResultado(bytes, manifest, url) {
+    const vista = describePayload(bytes, manifest);
+    resultado.hidden = false;
+    resultado.innerHTML = '';
+
+    const cabecera = doc.createElement('div');
+    cabecera.className = 'resultado-cab';
+
+    const titulo = doc.createElement('h2');
+    titulo.textContent = vista.name;
+
+    const meta = doc.createElement('span');
+    meta.className = 'resultado-meta';
+    meta.textContent = `${vista.label} · ${vista.sizeLabel} · ${vista.mime}`;
+
+    cabecera.append(titulo, meta);
+    resultado.append(cabecera);
+
+    const caja = doc.createElement('div');
+    caja.className = 'preview';
+    caja.dataset.kind = vista.kind;
+
+    if (vista.kind === 'image') {
+      const img = doc.createElement('img');
+      img.src = url;
+      img.alt = vista.name;
+      caja.append(img);
+    } else if (vista.kind === 'video' || vista.kind === 'audio') {
+      const medio = doc.createElement(vista.kind);
+      medio.src = url;
+      medio.controls = true;
+      caja.append(medio);
+    } else if (vista.kind === 'pdf') {
+      const marco = doc.createElement('iframe');
+      marco.src = url;
+      marco.title = vista.name;
+      caja.append(marco);
+    } else if (vista.kind === 'text') {
+      const pre = doc.createElement('pre');
+      pre.className = 'texto';
+      pre.textContent = vista.truncated
+        ? `${vista.text}\n\n… recortado, son ${vista.lines} líneas en total`
+        : vista.text;
+      caja.append(pre);
+    } else if (vista.kind === 'zip') {
+      const resumen = doc.createElement('p');
+      resumen.className = 'zip-resumen';
+      resumen.textContent = `${vista.fileCount} archivo(s) · ${vista.dirCount} carpeta(s) `
+        + `· ${formatBytes(vista.uncompressedSize)} sin comprimir`;
+
+      const lista = doc.createElement('ul');
+      lista.className = 'zip-lista';
+      for (const entrada of vista.entries) {
+        const item = doc.createElement('li');
+        item.dataset.tipo = entrada.directory ? 'dir' : 'file';
+
+        const nombre = doc.createElement('span');
+        nombre.textContent = entrada.name;
+        const peso = doc.createElement('span');
+        peso.className = 'zip-peso';
+        peso.textContent = entrada.directory ? '' : formatBytes(entrada.size);
+
+        item.append(nombre, peso);
+        lista.append(item);
+      }
+      caja.append(resumen, lista);
+    } else {
+      const pre = doc.createElement('pre');
+      pre.className = 'hex';
+      pre.textContent = vista.hex;
+      caja.append(pre);
+    }
+
+    resultado.append(caja);
+    resultado.append(descarga);
+  }
+
   function completar() {
     corriendo = false;
     loop?.stop();
@@ -347,11 +434,21 @@ export function mount(doc = globalThis.document) {
       return;
     }
 
-    const blob = new Blob([armado.document], { type: armado.manifest.mime });
-    descarga.href = URL.createObjectURL(blob);
+    const bytes = new Uint8Array(armado.document);
+    const vista = describePayload(bytes, armado.manifest);
+    // El tipo sniffeado le gana al declarado: un blob con mime vacío no lo
+    // muestra ningún <img>, aunque los bytes sean un PNG perfecto.
+    const blob = new Blob([bytes], { type: vista.mime });
+    const url = URL.createObjectURL(blob);
+
+    descarga.href = url;
     descarga.download = downloadName(decoder.docId, armado.manifest.name);
     descarga.hidden = false;
     descarga.textContent = `Guardar ${descarga.download}`;
+
+    pintarResultado(bytes, armado.manifest, url);
+    // La cámara ya no aporta nada y el video en negro tapa el resultado.
+    if (apertura) apertura.hidden = true;
 
     setEstado('documento completo · SHA-256 verificado', 'ok');
     detenerCamara();
@@ -416,6 +513,8 @@ export function mount(doc = globalThis.document) {
     decoder.reset();
     panel.hidden = true;
     descarga.hidden = true;
+    resultado.hidden = true;
+    if (apertura) apertura.hidden = false;
     loop = new ScanLoop(tomarCuadro, decoder);
     corriendo = true;
     botonCamara.textContent = 'Detener';

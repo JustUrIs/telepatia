@@ -1,0 +1,15 @@
+{
+  "name": "telepatía — transferencia óptica",
+  "short_name": "telepatía",
+  "description": "Mueve un archivo entre dos aparatos con una pantalla y una cámara. Sin red.",
+  "start_url": "./sender.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080b0a",
+  "theme_color": "#080b0a",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
