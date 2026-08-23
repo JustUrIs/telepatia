@@ -282,6 +282,8 @@ export function diagnoseCamera(entorno) {
   const puerto = location?.port ? `:${location.port}` : '';
   const ruta = location?.pathname ?? '/src/ui/receiver.html';
 
+  if (nav?.mediaDevices?.getUserMedia) return null;
+
   if (!isSecureContext) {
     return {
       code: FAILURE_CODES.cameraUnavailable,
@@ -291,8 +293,6 @@ export function diagnoseCamera(entorno) {
         + `En esta misma computadora también podés abrir http://localhost${puerto}${ruta}.`,
     };
   }
-
-  if (nav?.mediaDevices?.getUserMedia) return null;
 
   return {
     code: FAILURE_CODES.cameraUnavailable,

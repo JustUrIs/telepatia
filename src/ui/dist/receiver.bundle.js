@@ -11196,6 +11196,7 @@ function diagnoseCamera(entorno) {
   const host = location?.hostname ?? "";
   const puerto = location?.port ? `:${location.port}` : "";
   const ruta = location?.pathname ?? "/src/ui/receiver.html";
+  if (nav?.mediaDevices?.getUserMedia) return null;
   if (!isSecureContext) {
     return {
       code: FAILURE_CODES.cameraUnavailable,
@@ -11203,7 +11204,6 @@ function diagnoseCamera(entorno) {
       detail: `Esta p\xE1gina se abri\xF3 desde ${host}${puerto} sin HTTPS. Por seguridad, el tel\xE9fono no le entrega la c\xE1mara. Volv\xE9 al inicio y entr\xE1 por el enlace HTTPS. En esta misma computadora tambi\xE9n pod\xE9s abrir http://localhost${puerto}${ruta}.`
     };
   }
-  if (nav?.mediaDevices?.getUserMedia) return null;
   return {
     code: FAILURE_CODES.cameraUnavailable,
     title: "Este navegador no entrega la c\xE1mara",

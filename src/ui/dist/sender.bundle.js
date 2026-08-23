@@ -2792,8 +2792,7 @@ function mount(doc = globalThis.document) {
       if (!respuestaPrograma.ok || !respuestaInforme.ok) {
         throw new Error("no se pudieron abrir los archivos de ejemplo");
       }
-      const textoPrograma = await respuestaPrograma.text();
-      archivo = new TextEncoder().encode(textoPrograma.replace(/\r\n/g, "\n"));
+      archivo = new Uint8Array(await respuestaPrograma.arrayBuffer());
       informePre = await respuestaInforme.json();
       nombreArchivo = demo.nombre;
       tipoArchivo = "text/plain";
