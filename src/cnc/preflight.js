@@ -57,13 +57,25 @@ export function preflight(job, program, contexto = {}) {
   ));
 
   // --- 3. Número de programa ----------------------------------------------
-  const oEsperado = String(job.programNumber ?? '').toUpperCase().replace(/[^O0-9]/g, '');
-  const oReal = String(program.programNumber ?? '').toUpperCase();
+  // Se comparan solo los dígitos. La letra `O` y el dígito `0` son el mismo
+  // glifo para un OCR, y de hecho el modelo leyó "01837" donde el papel dice
+  // "O1837". Exigir el prefijo sería castigar una ambigüedad tipográfica que
+  // ningún operario nota, y un falso positivo acá quema la confianza en todos
+  // los demás checks.
+  // Como número y no como string: "O1837" pierde la letra y queda "1837",
+  // mientras que "01837" conserva el cero que el OCR puso en su lugar. Son el
+  // mismo programa.
+  const digitos = (v) => {
+    const soloDigitos = String(v ?? '').replace(/\D+/g, '');
+    return soloDigitos === '' ? null : Number(soloDigitos);
+  };
+  const oEsperado = digitos(job.programNumber);
+  const oReal = digitos(program.programNumber);
   checks.push(check(
     'program_number_matches',
-    oEsperado !== '' && oEsperado === oReal,
-    oEsperado || 'no declarado',
-    oReal || 'el programa no declara número',
+    oEsperado !== null && oEsperado === oReal,
+    job.programNumber || 'no declarado',
+    program.programNumber || 'el programa no declara número',
     ev('programNumber'),
   ));
 
@@ -141,15 +153,26 @@ export function preflight(job, program, contexto = {}) {
     mCodes.length === 0 ? 'sin códigos M' : mCodes.join(', '),
   ));
 
-  // --- 10. El parser no encontró nada raro --------------------------------
+  // --- 10. Anomalías léxicas que sí importan ------------------------------
+  //
+  // No todo warning del parser es un problema. `G91 G28 Z0.` es el retorno a
+  // home con el que termina LITERALMENTE todo programa de taller: marcarlo como
+  // anomalía bloqueante hace que la herramienta frene el 100% de los programas
+  // buenos, y una herramienta que siempre dice que no es una que se apaga.
+  //
+  // Bloquean solo las anomalías que indican que el archivo está mal formado, no
+  // las que indican que el análisis tiene un límite.
   const warnings = program.warnings ?? [];
+  const BLOQUEANTES = [/sin cerrar/i, /sin n[uú]mero/i, /sin ning[uú]n movimiento/i];
+  const graves = warnings.filter((w) => BLOQUEANTES.some((re) => re.test(w)));
+
   checks.push(check(
     'gcode_parses_clean',
-    warnings.length === 0,
-    'sin anomalías léxicas',
-    warnings.length === 0 ? 'limpio' : warnings.join(' · '),
+    graves.length === 0,
+    'sin anomalías que impidan leer el programa',
+    graves.length === 0 ? 'legible' : graves.join(' · '),
     [],
-    { warnings },
+    { warnings, graves },
   ));
 
   return checks;

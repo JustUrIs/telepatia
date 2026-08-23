@@ -1,0 +1,16 @@
+{
+  "workOrder": "WO-2026-04471",
+  "partNumber": "1837",
+  "revision": "C",
+  "material": "Aluminum 6061-T6",
+  "machine": "HAAS VF-2",
+  "programNumber": "01837",
+  "workOffset": "G54",
+  "tools": [
+    "T1 12 mm end mill 3 flute carbide",
+    "T2 6 mm drill HSS",
+    "T3 8 mm end mill 3 flute carbide"
+  ],
+  "maxSpindleRpm": 10000,
+  "maxFeedMmMin": 2500
+}
