@@ -22,9 +22,15 @@ atribuye al panel. No crear más pitches hasta que Pitchr recupere el servicio.
 
 - `npm test` antes del fix: exit 0, **0 tests** en Windows por las comillas simples del
   glob. Era un falso verde.
-- `node --test "test/*.test.js"` con dependencias instaladas: **370 pass, 0 fail**.
-- `npm test` después del fix portable: **370 pass, 0 fail**, 1,1 s en la corrida
-  verificada.
+- En la primera base, `node --test "test/*.test.js"` con dependencias instaladas ejecutó
+  **370 pass, 0 fail**; después de integrar el binding emisor/preflight y la vista CNC, la
+  suite creció a 384 casos.
+- `npm test` después del fix portable descubre los 384 casos. El primer run integrado
+  encontró que Git convertía `.nc` a CRLF en Windows y rompía dos hashes byte a byte; se
+  fijó `*.nc text eol=lf` en `.gitattributes` para que el mismo recibo funcione en todos
+  los sistemas.
+- Verificación final desde un worktree nuevo que ya aplica esa regla: **384 pass, 0 fail**,
+  2,3 s. El worktree temporal fue eliminado después de la prueba.
 - `npm run test:model` después del mismo fix sí descubre la suite. Dos casos de factura se
   saltean por fixture ausente y el test de hardware pasa; luego la suite no emitió avance
   durante aproximadamente cinco minutos y fue interrumpida manualmente. **No contar la
@@ -43,15 +49,16 @@ son los que un inversor usa para distinguir un gran demo de una compañía:
    necesita el golden run que respalde su costo/latencia sobre hardware común.
 5. No hay datos suficientes para mercado, equipo, ronda o tracción comercial. No
    inventarlos para completar un formulario que no vamos a enviar.
-6. Antes de decir que “solo cruza lo aprobado”, hay que ligar el reporte del preflight a
-   los bytes que el emisor acepta. Hoy son dos pasos separados.
+6. La integración paralela ya ligó `contexto.sourceSha256` del reporte a los bytes que el
+   emisor acepta. Esto cierra archivos cambiados/incorrectos; el JSON sigue sin firma y no
+   autentica a su autor.
 
 ### Autoevaluación interna — no es un score de Pitch Protocol
 
 | Dimensión | Estado | Evidencia o hueco |
 |---|---|---|
 | Problema | fuerte | error físico + USB/air-gap paradox + costo |
-| Producto | fuerte | preflight real y transporte óptico funcionando |
+| Producto | fuerte | preflight real, sender ligado por hash y transporte óptico funcionando |
 | Core insight | fuerte | el air gap tercerizó el ingreso a un humano con USB |
 | Arquitectura AI | fuerte | AI estructura; código decide; grounding/confianza |
 | Diferencial | fuerte pero debe matizarse | capa semántica antes del canal; existen guards de ingreso |
@@ -89,8 +96,8 @@ son los que un inversor usa para distinguir un gran demo de una compañía:
 > Telepatía stops wrong files before they reach air-gapped industrial machines: local AI
 > reads the job, code verifies it, and light carries the approved bytes.
 
-Esta versión nombra el resultado antes que la tecnología. Para máxima precisión mientras
-no exista el binding preflight/emisor, reemplazar `approved bytes` por `verified file`.
+Esta versión nombra el resultado antes que la tecnología. `Approved bytes` es defendible
+porque el sender exige `approve` y coincidencia exacta de SHA; no implica firma/autenticidad.
 
 ### What are you building?
 
@@ -104,8 +111,9 @@ no exista el binding preflight/emisor, reemplazar `approved bytes` por `verified
 > Cycle Start. The architecture can later extend to PLC logic, robot programs, recipes and
 > maintenance packages.
 
-**Fuente:** implementación y fixtures del repositorio. **Precisión pendiente:** hoy el
-preflight y el sender existen, pero el reporte todavía no restringe el archivo elegible.
+**Fuente:** implementación y fixtures del repositorio. El sender ya exige un reporte con
+`veredicto === "approve"` cuyo `contexto.sourceSha256` coincida con el archivo. El límite
+pendiente es autenticidad del reporte, no binding del archivo.
 
 ### Problem
 
@@ -176,10 +184,10 @@ mezclar download, cold load, OCR y warm inference.
 Respuesta honesta hoy:
 
 > Prototype, no commercial traction claimed. The repository contains an end-to-end CNC
-> preflight, an optical fragmentation/parity/SHA transport and an adversarial harness. On
-> the current Windows environment, 370 non-model tests pass once dependencies are
-> installed and the test glob is invoked correctly. Physical transfer reliability and
-> customer demand still need to be measured.
+> preflight, an optical fragmentation/parity/SHA transport and an adversarial harness. The
+> integrated suite contains 384 non-model tests, including approval/hash mismatch and CNC
+> receiver rendering. Physical transfer reliability and customer demand still need to be
+> measured.
 
 **CONSTRUIDO y MEDIDO**, salvo la parte física aún pendiente. Tests no equivalen a
 tracción; usarlos como prueba de ejecución, nunca como adopción.
@@ -269,9 +277,9 @@ muestra fallo visible, no perfección.
 
 ### 6. ¿Un atacante no puede editar el JSON de aprobación?
 
-Sí, mientras no exista recibo firmado o un proceso integrado. El P0 del demo liga el hash
-del archivo al reporte para cerrar cambios accidentales; firma/PKI es hardening posterior.
-No confundir ambos niveles.
+Sí, porque el JSON todavía no está firmado. El workflow ya liga el hash del archivo al
+reporte y falla cerrado ante archivos distintos/adulterados; firma/PKI es el hardening que
+autentica quién emitió la aprobación. No confundir ambos niveles.
 
 ### 7. ¿Por qué luz en vez de un diode/guard?
 
@@ -302,9 +310,9 @@ es tesis, no hecho consumado.
 
 ### 12. ¿Qué demuestra este demo y qué no?
 
-Demuestra inferencia local, checks deterministas y transporte óptico íntegro de archivos
-pequeños. No demuestra autenticidad de origen, ausencia de malware, adopción de clientes,
-certificación ni confiabilidad industrial a escala.
+Demuestra inferencia local, checks deterministas, binding del archivo aprobado y transporte
+óptico íntegro de archivos pequeños. No demuestra autenticidad de origen, ausencia de
+malware, adopción de clientes, certificación ni confiabilidad industrial a escala.
 
 ## Cambios que debe provocar en el pitch de tres minutos
 
@@ -343,10 +351,10 @@ cuando exista evidencia.
 
 | Prioridad | Prueba | Métrica |
 |---|---|---|
-| P0 | ligar preflight al archivo emitido | 0 emisiones con hash/reporte inválido |
+| DONE | ligar preflight al archivo emitido | tests de approve/block/review/hash/adulteración |
 | P0 | golden run QVAC | tiempos por etapa + output + evidencia + commit |
 | P0 | cinco transferencias físicas | 5/5 byte-identical, tiempo y reintentos |
-| P0 | test command portable | `npm test` ejecuta 370, no 0 |
+| DONE | test command portable | `npm test` descubre 384, no 0 |
 | P1 | 6 entrevistas de problema | frecuencia, workaround, costo, buyer y trigger |
 | P1 | corpus CNC representativo | false approve, false review y cobertura de campos |
 | P1 | 2 entrevistas con integradores | integración, procurement y objeciones |

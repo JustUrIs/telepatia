@@ -80,7 +80,7 @@ Configuración visual:
 
 Usar tres dispositivos si es posible:
 
-1. **A — emisor conectado:** laptop con el `.nc` aprobado.
+1. **A — emisor conectado:** laptop con el `.nc` aprobado y su reporte de preflight.
 2. **B — receptor aislado:** otra laptop con cámara integrada y la PWA ya
    cacheada. Este representa la estación de ingeniería, no un teléfono.
 3. **C — cámara del video:** teléfono en trípode que muestra A y B en el mismo
@@ -95,7 +95,10 @@ node scripts/serve.mjs
 1. Abrir emisor y receptor una vez con red.
 2. Esperar en ambos `offline listo · funciona sin red`.
 3. Dar permiso de cámara y probar la transferencia completa.
-4. Seleccionar `part-1837-revC.nc`.
+4. Seleccionar `part-1837-revC.nc` y
+   `part-1837-revC.preflight.json`. Esperar el estado `APROBADO` y la confirmación
+   de que el SHA del informe coincide con los bytes elegidos. El botón no puede
+   habilitarse con Rev B, con otro reporte ni después de cambiar un byte.
 5. Para cámara real, empezar con 300 bytes/frame y 2 fps. El fixture aprobado se
    comprime a 431 bytes: son dos frames de datos, uno de paridad y el manifest,
    aproximadamente 2 s por vuelta. Es más lento que el máximo, pero legible y

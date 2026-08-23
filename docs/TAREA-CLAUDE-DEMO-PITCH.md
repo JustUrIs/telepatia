@@ -5,6 +5,24 @@
 > autoriza una reescritura. Priorizar el camino feliz del demo, cerrar brechas que dañen
 > credibilidad y conservar todo lo que ya funciona.
 
+## Estado integrado al 2026-08-23
+
+No rehacer estos puntos; verificar sobre el commit más nuevo y continuar con la evidencia:
+
+- **DONE:** el preflight incluye `contexto.sourceSha256` de los bytes crudos.
+- **DONE:** el sender exige reporte `approve`, valida el SHA exacto y falla cerrado ante
+  archivo/reporte cambiado, review, block o JSON inválido.
+- **DONE:** el receiver reconoce reportes CNC y no muestra copy de facturas en ese flujo.
+- **DONE:** bundles/tests y cache offline fueron actualizados por el trabajo paralelo.
+- **DONE:** el runner rápido usa un glob portable en Windows; la suite integrada contiene
+  384 casos.
+- **DONE:** `.nc` queda fijado a LF para que Git no invalide `sourceSha256` según el OS.
+- **PENDIENTE:** cinco transferencias físicas, golden run QVAC, recursos audiovisuales,
+  ensayo cronometrado y auditoría final de claims.
+
+El reporte sigue siendo JSON sin firma. El binding exacto ya existe; autenticidad del
+autor/PKI sigue siendo roadmap.
+
 ## 0. Qué tiene que poder creer el jurado al terminar
 
 En tres minutos el jurado debe haber visto, no solamente oído, esta cadena:

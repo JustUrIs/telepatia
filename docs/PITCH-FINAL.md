@@ -120,7 +120,7 @@ con la laptop del técnico.
 ### ¿Qué tracción existe?
 
 Existe evidencia de ejecución, no tracción comercial: prototipo CNC end-to-end,
-canal óptico, harness adversarial y 370 tests no-modelo en verde en el entorno de
+canal óptico, harness adversarial y 384 tests no-modelo en la suite integrada del
 demo. Todavía no hay clientes, pilotos ni ingresos documentados. El próximo hito
 es un design partner que permita medir falso approve, tasa de review, tiempo
 agregado y errores evitados.
