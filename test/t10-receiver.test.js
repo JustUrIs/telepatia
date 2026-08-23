@@ -175,3 +175,47 @@ test('downloadName usa el basename de la ruta del Bloque B', () => {
   assert.equal(downloadName(docId, 'C:\\temp\\x.bin'), 'x.bin');
   assert.equal(downloadName(docId, ''), 'document.bin');
 });
+
+// ---------------------------------------------------------------------------
+// Diagnostico de camara: distinguir "sin permiso" de "esta direccion no sirve".
+// ---------------------------------------------------------------------------
+
+const { diagnoseCamera } = await import('../src/ui/receiver.js');
+
+const entorno = (over = {}) => ({
+  isSecureContext: true,
+  navigator: { mediaDevices: { getUserMedia() {} } },
+  location: { hostname: 'localhost', port: '8777', pathname: '/src/ui/receiver.html' },
+  ...over,
+});
+
+test('con contexto seguro y mediaDevices presente no hay impedimento', () => {
+  assert.equal(diagnoseCamera(entorno()), null);
+});
+
+test('un origen inseguro se reporta como problema de direccion, no de permiso', () => {
+  const d = diagnoseCamera(entorno({
+    isSecureContext: false,
+    navigator: {},
+    location: { hostname: '192.168.113.78', port: '8777', pathname: '/src/ui/receiver.html' },
+  }));
+
+  assert.equal(d.code, FAILURE_CODES.cameraUnavailable);
+  assert.match(d.title, /direcci/i);
+  assert.ok(d.detail.includes('192.168.113.78:8777'), 'tiene que nombrar donde esta parado');
+  assert.ok(d.detail.includes('http://localhost:8777/src/ui/receiver.html'), 'y a donde ir');
+  assert.doesNotMatch(d.detail, /denegad/i, 'no puede sugerir que es un permiso');
+});
+
+test('contexto seguro sin mediaDevices se reporta como browser, no como direccion', () => {
+  const d = diagnoseCamera(entorno({ isSecureContext: true, navigator: {} }));
+  assert.match(d.title, /browser/i);
+  assert.doesNotMatch(d.detail, /localhost/);
+});
+
+test('diagnoseCamera no lanza con un entorno incompleto', () => {
+  for (const e of [undefined, null, {}, { navigator: null }, { location: null }]) {
+    assert.doesNotThrow(() => diagnoseCamera(e));
+    assert.equal(typeof diagnoseCamera(e).title, 'string');
+  }
+});

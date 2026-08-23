@@ -13,6 +13,19 @@ const FPS_MAX = 120;
 const FPS_DEFAULT = 10;
 
 /**
+ * Techo duro de tamaño.
+ *
+ * El canal óptico mueve del orden de kB/s: un archivo de 200 MB no es "lento",
+ * es imposible — y antes de fallar por el límite de 65535 frames, el deflate y
+ * la construcción de los frames congelan la pestaña varios minutos. Vale más
+ * rechazarlo en el acto y decir por qué.
+ */
+export const MAX_BYTES = 4 * 1024 * 1024;
+
+/** A partir de acá se avisa que va a tardar, pero se deja hacer. */
+export const AVISO_BYTES = 256 * 1024;
+
+/**
  * @typedef {object} EmissionPlan
  * @property {number} docId
  * @property {string} docIdHex
@@ -40,6 +53,16 @@ export function planEmission(fileBytes, opts = {}) {
 
   if (!Number.isInteger(fps) || fps < 1 || fps > FPS_MAX) {
     throw new RangeError(`fps inválido: ${fps} (esperado entero 1..${FPS_MAX})`);
+  }
+
+  // Antes de tocar los bytes: comprimir y framear 200 MB cuelga la pestaña
+  // minutos enteros, y el error real (65535 frames) llegaría demasiado tarde.
+  const largo = fileBytes?.length ?? 0;
+  if (largo > MAX_BYTES) {
+    throw new RangeError(
+      `el archivo pesa ${formatBytes(largo)} y el máximo es ${formatBytes(MAX_BYTES)}. `
+      + 'El canal óptico mueve del orden de kB/s: algo así no tarda, no termina.',
+    );
   }
 
   const encoded = encodeDocument(fileBytes, {
@@ -250,11 +273,32 @@ export function mount(doc = globalThis.document) {
   fileInput.addEventListener('change', async () => {
     const file = fileInput.files?.[0];
     if (!file) return;
+    // Se mira el tamaño ANTES de leer el archivo a memoria: no tiene sentido
+    // cargar 200 MB en un ArrayBuffer para después rechazarlo.
+    if (file.size > MAX_BYTES) {
+      archivo = null;
+      botonEmitir.disabled = true;
+      setEstado(
+        `${file.name} pesa ${formatBytes(file.size)}; el máximo es ${formatBytes(MAX_BYTES)}`,
+        'error',
+      );
+      return;
+    }
+
     archivo = new Uint8Array(await file.arrayBuffer());
     nombreArchivo = file.name;
     tipoArchivo = file.type || 'application/octet-stream';
     botonEmitir.disabled = false;
-    setEstado(`${nombreArchivo} · ${formatBytes(archivo.length)} listo`, 'listo');
+
+    if (archivo.length > AVISO_BYTES) {
+      const vuelta = Math.ceil(archivo.length / Number(chunkInput.value)) / Number(fpsInput.value);
+      setEstado(
+        `${nombreArchivo} · ${formatBytes(archivo.length)} · ~${Math.round(vuelta)} s por vuelta`,
+        'listo',
+      );
+    } else {
+      setEstado(`${nombreArchivo} · ${formatBytes(archivo.length)} listo`, 'listo');
+    }
   });
 
   botonEmitir.addEventListener('click', async () => {

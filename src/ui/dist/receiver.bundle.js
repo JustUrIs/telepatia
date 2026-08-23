@@ -11115,6 +11115,28 @@ ${message}` : base.detail,
     message
   };
 }
+function diagnoseCamera(entorno) {
+  const { isSecureContext, navigator: nav, location } = entorno ?? {};
+  const host = location?.hostname ?? "";
+  const puerto = location?.port ? `:${location.port}` : "";
+  const ruta = location?.pathname ?? "/src/ui/receiver.html";
+  if (nav?.mediaDevices?.getUserMedia) return null;
+  if (!isSecureContext) {
+    return {
+      code: FAILURE_CODES.cameraUnavailable,
+      title: "Esta direcci\xF3n no puede usar la c\xE1mara",
+      detail: `Los browsers solo dan acceso a la c\xE1mara en contexto seguro: https con certificado confiable, o localhost. Est\xE1s en "${host}${puerto}", que no es ninguno de los dos.
+
+Si est\xE1s en la misma m\xE1quina que el servidor, abr\xED:
+http://localhost${puerto}${ruta}`
+    };
+  }
+  return {
+    code: FAILURE_CODES.cameraUnavailable,
+    title: "Este browser no expone la c\xE1mara",
+    detail: "El origen es seguro pero navigator.mediaDevices no est\xE1 disponible. Suele pasar en webviews embebidas y en browsers viejos: prob\xE1 con Chrome o Safari."
+  };
+}
 function downloadName(docId, nombreDelManifest) {
   const propuesto = String(nombreDelManifest ?? "").trim();
   if (propuesto !== "") {
@@ -11348,6 +11370,12 @@ function mount(doc = globalThis.document) {
       setEstado("escaneo detenido", "idle");
       return;
     }
+    const impedimento = diagnoseCamera(globalThis);
+    if (impedimento) {
+      setEstado("la c\xE1mara no est\xE1 disponible ac\xE1", "error");
+      pintarFallo({ stage: "scan", code: impedimento.code, message: impedimento.detail });
+      return;
+    }
     try {
       stream = await globalThis.navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 1280 } }
@@ -11357,7 +11385,7 @@ function mount(doc = globalThis.document) {
       pintarFallo({
         stage: "scan",
         code: FAILURE_CODES.cameraUnavailable,
-        message: err.message
+        message: `${err.name}: ${err.message}`
       });
       return;
     }
@@ -11374,9 +11402,21 @@ function mount(doc = globalThis.document) {
     setEstado("escaneando \xB7 apunt\xE1 al c\xF3digo del emisor", "escaneando");
     globalThis.requestAnimationFrame(bucle);
   });
-  setEstado("encend\xE9 la c\xE1mara para empezar");
+  const impedimentoInicial = diagnoseCamera(globalThis);
+  if (impedimentoInicial) {
+    botonCamara.disabled = true;
+    setEstado("la c\xE1mara no est\xE1 disponible en esta direcci\xF3n", "error");
+    pintarFallo({
+      stage: "scan",
+      code: impedimentoInicial.code,
+      message: impedimentoInicial.detail
+    });
+  } else {
+    setEstado("encend\xE9 la c\xE1mara para empezar");
+  }
 }
 export {
+  diagnoseCamera,
   downloadName,
   mount,
   renderFailure,

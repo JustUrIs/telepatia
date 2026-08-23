@@ -143,3 +143,33 @@ test('el docId hexadecimal del plan es el que usa el Bloque B para las rutas', (
   assert.equal(plan.docIdHex, docIdHex(plan.docId));
   assert.equal(plan.manifest.sha256.slice(0, 8), plan.docIdHex);
 });
+
+// ---------------------------------------------------------------------------
+// Techo de tamano: un archivo enorme tiene que fallar rapido y con motivo.
+// ---------------------------------------------------------------------------
+
+const { MAX_BYTES, AVISO_BYTES } = await import('../src/ui/sender.js');
+
+test('un archivo por encima del techo se rechaza con el motivo', () => {
+  const enorme = new Uint8Array(MAX_BYTES + 1);
+  assert.throws(
+    () => planEmission(enorme, { fps: 10 }),
+    (err) => {
+      assert.match(err.message, /m[aá]ximo/i);
+      assert.match(err.message, /4\.00 MB/, 'tiene que nombrar el limite en unidades legibles');
+      return true;
+    },
+  );
+});
+
+test('el techo se chequea antes de comprimir: un archivo enorme no cuelga el test', () => {
+  const t0 = Date.now();
+  // 200 MB de ceros: comprimirlos tardaria segundos. Tiene que fallar de una.
+  assert.throws(() => planEmission(new Uint8Array(200 * 1024 * 1024), { fps: 10 }));
+  assert.ok(Date.now() - t0 < 1500, 'tardo demasiado: se puso a trabajar antes de validar');
+});
+
+test('justo en el techo todavia entra', () => {
+  assert.doesNotThrow(() => planEmission(new Uint8Array(1024).fill(7), { fps: 10 }));
+  assert.ok(AVISO_BYTES < MAX_BYTES, 'el aviso tiene que estar por debajo del techo');
+});

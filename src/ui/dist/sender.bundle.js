@@ -2260,6 +2260,8 @@ var create = import_qrcode.default.create;
 // src/ui/sender.js
 var FPS_MAX = 120;
 var FPS_DEFAULT = 10;
+var MAX_BYTES = 4 * 1024 * 1024;
+var AVISO_BYTES = 256 * 1024;
 function planEmission(fileBytes, opts = {}) {
   const {
     chunkSize,
@@ -2271,6 +2273,12 @@ function planEmission(fileBytes, opts = {}) {
   } = opts ?? {};
   if (!Number.isInteger(fps) || fps < 1 || fps > FPS_MAX) {
     throw new RangeError(`fps inv\xE1lido: ${fps} (esperado entero 1..${FPS_MAX})`);
+  }
+  const largo = fileBytes?.length ?? 0;
+  if (largo > MAX_BYTES) {
+    throw new RangeError(
+      `el archivo pesa ${formatBytes(largo)} y el m\xE1ximo es ${formatBytes(MAX_BYTES)}. El canal \xF3ptico mueve del orden de kB/s: algo as\xED no tarda, no termina.`
+    );
   }
   const encoded = encodeDocument(fileBytes, {
     ...chunkSize === void 0 ? {} : { chunkSize },
@@ -2429,11 +2437,28 @@ function mount(doc = globalThis.document) {
   fileInput.addEventListener("change", async () => {
     const file = fileInput.files?.[0];
     if (!file) return;
+    if (file.size > MAX_BYTES) {
+      archivo = null;
+      botonEmitir.disabled = true;
+      setEstado(
+        `${file.name} pesa ${formatBytes(file.size)}; el m\xE1ximo es ${formatBytes(MAX_BYTES)}`,
+        "error"
+      );
+      return;
+    }
     archivo = new Uint8Array(await file.arrayBuffer());
     nombreArchivo = file.name;
     tipoArchivo = file.type || "application/octet-stream";
     botonEmitir.disabled = false;
-    setEstado(`${nombreArchivo} \xB7 ${formatBytes(archivo.length)} listo`, "listo");
+    if (archivo.length > AVISO_BYTES) {
+      const vuelta = Math.ceil(archivo.length / Number(chunkInput.value)) / Number(fpsInput.value);
+      setEstado(
+        `${nombreArchivo} \xB7 ${formatBytes(archivo.length)} \xB7 ~${Math.round(vuelta)} s por vuelta`,
+        "listo"
+      );
+    } else {
+      setEstado(`${nombreArchivo} \xB7 ${formatBytes(archivo.length)} listo`, "listo");
+    }
   });
   botonEmitir.addEventListener("click", async () => {
     if (corriendo) {
@@ -2472,7 +2497,9 @@ function mount(doc = globalThis.document) {
   setEstado("eleg\xED un archivo para empezar");
 }
 export {
+  AVISO_BYTES,
   KIND_LABEL,
+  MAX_BYTES,
   formatBytes,
   mount,
   nextFrame,

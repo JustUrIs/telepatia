@@ -10,7 +10,7 @@
 // contenido dinámico, y todo el shell entra en un puñado de archivos — una
 // política más lista solo agregaría formas de fallar.
 
-const VERSION = 'telepatia-v1';
+const VERSION = 'telepatia-v2';
 
 /** Todo lo que hace falta para que las dos páginas abran sin red. */
 const SHELL = [

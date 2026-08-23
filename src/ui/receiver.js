@@ -187,6 +187,45 @@ export function renderFailure(failure) {
 }
 
 /**
+ * Por qué esta página no puede usar la cámara, o `null` si puede.
+ *
+ * `getUserMedia` no es que falle fuera de contexto seguro: `navigator.
+ * mediaDevices` **no existe**, y tocarlo tira un TypeError que no tiene nada
+ * que ver con permisos. Distinguir los dos casos importa porque la acción del
+ * usuario es completamente distinta: uno se arregla aceptando un permiso, el
+ * otro cambiando la URL.
+ *
+ * @param {{isSecureContext?: boolean, navigator?: object, location?: object}} entorno
+ * @returns {{code: string, title: string, detail: string}|null}
+ */
+export function diagnoseCamera(entorno) {
+  const { isSecureContext, navigator: nav, location } = entorno ?? {};
+  const host = location?.hostname ?? '';
+  const puerto = location?.port ? `:${location.port}` : '';
+  const ruta = location?.pathname ?? '/src/ui/receiver.html';
+
+  if (nav?.mediaDevices?.getUserMedia) return null;
+
+  if (!isSecureContext) {
+    return {
+      code: FAILURE_CODES.cameraUnavailable,
+      title: 'Esta dirección no puede usar la cámara',
+      detail: 'Los browsers solo dan acceso a la cámara en contexto seguro: '
+        + `https con certificado confiable, o localhost. Estás en "${host}${puerto}", `
+        + 'que no es ninguno de los dos.\n\n'
+        + `Si estás en la misma máquina que el servidor, abrí:\nhttp://localhost${puerto}${ruta}`,
+    };
+  }
+
+  return {
+    code: FAILURE_CODES.cameraUnavailable,
+    title: 'Este browser no expone la cámara',
+    detail: 'El origen es seguro pero navigator.mediaDevices no está disponible. '
+      + 'Suele pasar en webviews embebidas y en browsers viejos: probá con Chrome o Safari.',
+  };
+}
+
+/**
  * Nombre sugerido para bajar el documento reconstruido.
  *
  * `runPaths` es la convención de rutas del Bloque B, que corre en Node. El
@@ -493,6 +532,16 @@ export function mount(doc = globalThis.document) {
       return;
     }
 
+    // El diagnóstico va primero: sin esto, un origen inseguro tira un
+    // TypeError sobre `undefined` que se reporta como "permiso denegado" y
+    // manda al usuario a revisar permisos que no tienen nada que ver.
+    const impedimento = diagnoseCamera(globalThis);
+    if (impedimento) {
+      setEstado('la cámara no está disponible acá', 'error');
+      pintarFallo({ stage: 'scan', code: impedimento.code, message: impedimento.detail });
+      return;
+    }
+
     try {
       stream = await globalThis.navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 1280 } },
@@ -502,7 +551,7 @@ export function mount(doc = globalThis.document) {
       pintarFallo({
         stage: 'scan',
         code: FAILURE_CODES.cameraUnavailable,
-        message: err.message,
+        message: `${err.name}: ${err.message}`,
       });
       return;
     }
@@ -522,5 +571,18 @@ export function mount(doc = globalThis.document) {
     globalThis.requestAnimationFrame(bucle);
   });
 
-  setEstado('encendé la cámara para empezar');
+  // Se avisa al cargar, no recién cuando el usuario toca el botón: descubrir
+  // que la dirección no sirve después de apuntar el celular es tarde.
+  const impedimentoInicial = diagnoseCamera(globalThis);
+  if (impedimentoInicial) {
+    botonCamara.disabled = true;
+    setEstado('la cámara no está disponible en esta dirección', 'error');
+    pintarFallo({
+      stage: 'scan',
+      code: impedimentoInicial.code,
+      message: impedimentoInicial.detail,
+    });
+  } else {
+    setEstado('encendé la cámara para empezar');
+  }
 }
