@@ -1,0 +1,302 @@
+[
+  {
+    "text": "INDUSTRIAL CONTROL SYSTEMS",
+    "bbox": [
+      59,
+      48,
+      516,
+      80
+    ],
+    "confidence": 0.39612019062042236
+  },
+  {
+    "text": "ADVISORY",
+    "bbox": [
+      519,
+      48,
+      667,
+      79
+    ],
+    "confidence": 0.9285020232200623
+  },
+  {
+    "text": "ICSA26198-04",
+    "bbox": [
+      61,
+      89,
+      319,
+      125
+    ],
+    "confidence": 0.7068324685096741
+  },
+  {
+    "text": "Vendör:Nördwind :Autömatiön:GrbH",
+    "bbox": [
+      62,
+      150,
+      435,
+      175
+    ],
+    "confidence": 0.07029475271701813
+  },
+  {
+    "text": "Prøduct: NW-9000 Series PLC",
+    "bbox": [
+      62,
+      180,
+      380,
+      207
+    ],
+    "confidence": 0.45014867186546326
+  },
+  {
+    "text": "affäcted v)rsíöns",
+    "bbox": [
+      62,
+      214,
+      244,
+      239
+    ],
+    "confidence": 0.20742690563201904
+  },
+  {
+    "text": "4.0,8",
+    "bbox": [
+      251,
+      214,
+      307,
+      239
+    ],
+    "confidence": 0.3191269040107727
+  },
+  {
+    "text": "4.2-3",
+    "bbox": [
+      322,
+      214,
+      378,
+      239
+    ],
+    "confidence": 0.31749022006988525
+  },
+  {
+    "text": "Fixèdin-version",
+    "bbox": [
+      61,
+      247,
+      243,
+      272
+    ],
+    "confidence": 0.3075718283653259
+  },
+  {
+    "text": "4.340",
+    "bbox": [
+      252,
+      247,
+      310,
+      272
+    ],
+    "confidence": 0.27215835452079773
+  },
+  {
+    "text": "CVE-?026;31877",
+    "bbox": [
+      62,
+      300,
+      261,
+      329
+    ],
+    "confidence": 0.4557453691959381
+  },
+  {
+    "text": "CVSSVa:1:basesscore",
+    "bbox": [
+      60,
+      331,
+      298,
+      359
+    ],
+    "confidence": 0.26542845368385315
+  },
+  {
+    "text": "8 5",
+    "bbox": [
+      304,
+      334,
+      340,
+      358
+    ],
+    "confidence": 0.23763951659202576
+  },
+  {
+    "text": "äUMVARY",
+    "bbox": [
+      59,
+      391,
+      167,
+      415
+    ],
+    "confidence": 0.21912367641925812
+  },
+  {
+    "text": "Ahimproper aüthehtication: vulnFràbility  allows:an",
+    "bbox": [
+      63,
+      419,
+      528,
+      447
+    ],
+    "confidence": 0.1622152477502823
+  },
+  {
+    "text": "unäuthenticated attacker on thè samenetwork segment",
+    "bbox": [
+      62,
+      446,
+      590,
+      475
+    ],
+    "confidence": 0.4047574996948242
+  },
+  {
+    "text": "to bypass the engineering workstätion; login and write",
+    "bbox": [
+      60,
+      475,
+      562,
+      503
+    ],
+    "confidence": 0.16719022393226624
+  },
+  {
+    "text": "arbitrary laddetlogic tg théscontröller",
+    "bbox": [
+      61,
+      502,
+      411,
+      532
+    ],
+    "confidence": 0.09486313909292221
+  },
+  {
+    "text": "MITIGATIOA",
+    "bbox": [
+      60,
+      562,
+      183,
+      586
+    ],
+    "confidence": 0.2878662347793579
+  },
+  {
+    "text": "RBquires reböøt: YES",
+    "bbox": [
+      61,
+      593,
+      304,
+      622
+    ],
+    "confidence": 0.11336316168308258
+  },
+  {
+    "text": "Røllbäçkävailáble",
+    "bbox": [
+      62,
+      624,
+      271,
+      651
+    ],
+    "confidence": 0.08764515817165375
+  },
+  {
+    "text": "@N",
+    "bbox": [
+      279,
+      626,
+      318,
+      650
+    ],
+    "confidence": 0.9975340366363525
+  },
+  {
+    "text": "'s{\"sinballd",
+    "bbox": [
+      62,
+      656,
+      191,
+      682
+    ],
+    "confidence": 0.04566330090165138
+  },
+  {
+    "text": "NW:Runtine 2 8. ;or@ater",
+    "bbox": [
+      199,
+      657,
+      449,
+      678
+    ],
+    "confidence": 0.04530498385429382
+  },
+  {
+    "text": "@pérators are:advised to ächedule the update during",
+    "bbox": [
+      61,
+      713,
+      560,
+      742
+    ],
+    "confidence": 0.2417173534631729
+  },
+  {
+    "text": "'hö?nextplänned mäintenänce Windöw",
+    "bbox": [
+      59,
+      742,
+      423,
+      767
+    ],
+    "confidence": 0.13477329909801483
+  },
+  {
+    "text": "A-cold restärt",
+    "bbox": [
+      431,
+      742,
+      562,
+      766
+    ],
+    "confidence": 0.48935821652412415
+  },
+  {
+    "text": "of the: controller Is required afterfläshing",
+    "bbox": [
+      62,
+      767,
+      444,
+      797
+    ],
+    "confidence": 0.43944627046585083
+  },
+  {
+    "text": "Published; 2026-07447",
+    "bbox": [
+      59,
+      827,
+      262,
+      851
+    ],
+    "confidence": 0.5773826241493225
+  },
+  {
+    "text": "Eastrevised:2026-08-02",
+    "bbox": [
+      60,
+      853,
+      287,
+      882
+    ],
+    "confidence": 0.4419576823711395
+  }
+]

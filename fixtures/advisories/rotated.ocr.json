@@ -1,0 +1,362 @@
+[
+  {
+    "text": "INDUSTRIAL CONTROL SYSTEMS",
+    "bbox": [
+      83,
+      26,
+      547,
+      86
+    ],
+    "confidence": 0.8661792874336243
+  },
+  {
+    "text": "ADVISORY",
+    "bbox": [
+      545,
+      52,
+      695,
+      92
+    ],
+    "confidence": 0.9999863505363464
+  },
+  {
+    "text": "ICSA26-198-04",
+    "bbox": [
+      81,
+      67,
+      346,
+      119
+    ],
+    "confidence": 0.9235836267471313
+  },
+  {
+    "text": "Vendor: Nordwind Automation GmbH",
+    "bbox": [
+      81,
+      128,
+      459,
+      177
+    ],
+    "confidence": 0.7592683434486389
+  },
+  {
+    "text": "Product: NW-9000 Series PLC",
+    "bbox": [
+      81,
+      161,
+      400,
+      204
+    ],
+    "confidence": 0.8266739249229431
+  },
+  {
+    "text": "Affected versions: 4.0.0",
+    "bbox": [
+      78,
+      193,
+      327,
+      231
+    ],
+    "confidence": 0.7987150549888611
+  },
+  {
+    "text": "4.2.3",
+    "bbox": [
+      339,
+      210,
+      396,
+      235
+    ],
+    "confidence": 0.6466504335403442
+  },
+  {
+    "text": "Fixed in version: 4.3.0",
+    "bbox": [
+      77,
+      226,
+      327,
+      265
+    ],
+    "confidence": 0.9333187937736511
+  },
+  {
+    "text": "CVE-2026-31877",
+    "bbox": [
+      73,
+      279,
+      277,
+      320
+    ],
+    "confidence": 0.6570876240730286
+  },
+  {
+    "text": "CVSS v3.1 base score: 9.8",
+    "bbox": [
+      70,
+      310,
+      353,
+      353
+    ],
+    "confidence": 0.8422326445579529
+  },
+  {
+    "text": "SUMMARY",
+    "bbox": [
+      69,
+      371,
+      177,
+      401
+    ],
+    "confidence": 0.9999487996101379
+  },
+  {
+    "text": "An",
+    "bbox": [
+      71,
+      403,
+      98,
+      422
+    ],
+    "confidence": 0.9999814629554749
+  },
+  {
+    "text": "improper authentication vulnerability",
+    "bbox": [
+      95,
+      399,
+      445,
+      448
+    ],
+    "confidence": 0.6991782784461975
+  },
+  {
+    "text": "unauthenticated",
+    "bbox": [
+      67,
+      427,
+      222,
+      460
+    ],
+    "confidence": 0.9999821186065674
+  },
+  {
+    "text": "allows an",
+    "bbox": [
+      442,
+      420,
+      535,
+      446
+    ],
+    "confidence": 0.6136515140533447
+  },
+  {
+    "text": "attacker on the same network",
+    "bbox": [
+      220,
+      436,
+      508,
+      473
+    ],
+    "confidence": 0.7999385595321655
+  },
+  {
+    "text": "to bypass the engineering",
+    "bbox": [
+      65,
+      457,
+      315,
+      496
+    ],
+    "confidence": 0.8760196566581726
+  },
+  {
+    "text": "segment",
+    "bbox": [
+      506,
+      454,
+      592,
+      479
+    ],
+    "confidence": 0.9999833106994629
+  },
+  {
+    "text": "arbitrary ladder",
+    "bbox": [
+      63,
+      482,
+      211,
+      513
+    ],
+    "confidence": 0.9875797033309937
+  },
+  {
+    "text": "workstation login and write",
+    "bbox": [
+      313,
+      468,
+      568,
+      505
+    ],
+    "confidence": 0.9539302587509155
+  },
+  {
+    "text": "logic to the controller",
+    "bbox": [
+      210,
+      492,
+      413,
+      524
+    ],
+    "confidence": 0.9294055700302124
+  },
+  {
+    "text": "MITIGATION",
+    "bbox": [
+      61,
+      540,
+      185,
+      571
+    ],
+    "confidence": 0.9906922578811646
+  },
+  {
+    "text": "Requires reboot: YES",
+    "bbox": [
+      59,
+      572,
+      304,
+      611
+    ],
+    "confidence": 0.9887155890464783
+  },
+  {
+    "text": "Rollback available: NO",
+    "bbox": [
+      57,
+      603,
+      316,
+      643
+    ],
+    "confidence": 0.9934616088867188
+  },
+  {
+    "text": "Prerequisites: NW-Runtime 2.8",
+    "bbox": [
+      56,
+      635,
+      353,
+      674
+    ],
+    "confidence": 0.7552464604377747
+  },
+  {
+    "text": "or later",
+    "bbox": [
+      371,
+      656,
+      441,
+      675
+    ],
+    "confidence": 0.9922663569450378
+  },
+  {
+    "text": "Operators are advised to schedule the",
+    "bbox": [
+      52,
+      693,
+      420,
+      736
+    ],
+    "confidence": 0.8958893418312073
+  },
+  {
+    "text": "the next planned",
+    "bbox": [
+      51,
+      723,
+      211,
+      751
+    ],
+    "confidence": 0.9769784212112427
+  },
+  {
+    "text": "update",
+    "bbox": [
+      420,
+      716,
+      488,
+      740
+    ],
+    "confidence": 0.9999775886535645
+  },
+  {
+    "text": "during",
+    "bbox": [
+      486.1570739746094,
+      713.9677734375,
+      554.3967895507812,
+      748.2682495117188
+    ],
+    "confidence": 0.9999985098838806
+  },
+  {
+    "text": "maintenance window",
+    "bbox": [
+      213,
+      731,
+      416,
+      763
+    ],
+    "confidence": 0.9999301433563232
+  },
+  {
+    "text": "of the controller is required after",
+    "bbox": [
+      50,
+      750,
+      356,
+      790
+    ],
+    "confidence": 0.9880980253219604
+  },
+  {
+    "text": "A cold restart",
+    "bbox": [
+      422,
+      742,
+      552,
+      768
+    ],
+    "confidence": 0.9887745976448059
+  },
+  {
+    "text": "flashing.",
+    "bbox": [
+      351.2939453125,
+      762.1107177734375,
+      439.6492004394531,
+      798.0679931640625
+    ],
+    "confidence": 0.983206033706665
+  },
+  {
+    "text": "Published: 2026-07-17",
+    "bbox": [
+      45,
+      806,
+      252,
+      842
+    ],
+    "confidence": 0.9133886694908142
+  },
+  {
+    "text": "Last revised: 2026-08-02",
+    "bbox": [
+      44,
+      835,
+      274,
+      872
+    ],
+    "confidence": 0.9912921786308289
+  }
+]

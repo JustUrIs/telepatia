@@ -1,17 +1,357 @@
 {
   "preset": "standard",
-  "fecha": "2026-08-23T08:42:25.893Z",
+  "fecha": "2026-08-23T09:11:50.020Z",
   "node": "v22.18.0",
   "plataforma": "win32 x64",
-  "recursos": null,
+  "recursos": {
+    "capabilities": {
+      "cpu": {
+        "status": "supported",
+        "value": {
+          "name": {
+            "status": "supported",
+            "value": "Intel(R) Core(TM) i7-14650HX",
+            "provenance": {
+              "source": "bare-cpu-info"
+            }
+          },
+          "vendor": {
+            "status": "supported",
+            "value": "Intel",
+            "provenance": {
+              "source": "bare-cpu-info"
+            }
+          },
+          "architecture": {
+            "status": "supported",
+            "value": 2,
+            "provenance": {
+              "source": "bare-cpu-info"
+            }
+          },
+          "physicalCores": {
+            "status": "supported",
+            "value": 16,
+            "provenance": {
+              "source": "bare-cpu-info"
+            }
+          },
+          "logicalCores": {
+            "status": "supported",
+            "value": 24,
+            "provenance": {
+              "source": "bare-cpu-info"
+            }
+          },
+          "performanceCores": {
+            "status": "supported",
+            "value": 8,
+            "provenance": {
+              "source": "bare-cpu-info"
+            }
+          },
+          "efficiencyCores": {
+            "status": "supported",
+            "value": 8,
+            "provenance": {
+              "source": "bare-cpu-info"
+            }
+          },
+          "frequencyHz": {
+            "status": "supported",
+            "value": 2419000000,
+            "provenance": {
+              "source": "bare-cpu-info"
+            }
+          },
+          "cacheLineBytes": {
+            "status": "supported",
+            "value": 64,
+            "provenance": {
+              "source": "bare-cpu-info"
+            }
+          }
+        },
+        "provenance": {
+          "source": "bare-cpu-info"
+        }
+      },
+      "memory": {
+        "totalBytes": {
+          "status": "supported",
+          "value": 34053414912,
+          "provenance": {
+            "source": "bare-cpu-info",
+            "scope": "system"
+          }
+        }
+      },
+      "gpus": {
+        "status": "supported",
+        "value": [
+          {
+            "id": "25c1a23e-c217-40bf-92b9-d89ec4db410b",
+            "name": {
+              "status": "supported",
+              "value": "Intel(R) UHD Graphics",
+              "provenance": {
+                "source": "bare-gpu-info",
+                "scope": "device"
+              }
+            },
+            "vendor": {
+              "status": "supported",
+              "value": "Intel",
+              "provenance": {
+                "source": "bare-gpu-info",
+                "scope": "device"
+              }
+            },
+            "type": {
+              "status": "supported",
+              "value": 2,
+              "provenance": {
+                "source": "bare-gpu-info",
+                "scope": "device"
+              }
+            },
+            "driverName": {
+              "status": "unavailable",
+              "reason": "Metric is unavailable"
+            },
+            "driverVersion": {
+              "status": "supported",
+              "value": "32.0.101.6790",
+              "provenance": {
+                "source": "bare-gpu-info",
+                "scope": "device"
+              }
+            },
+            "drivers": {
+              "vulkan": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "opencl": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "opengl": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "webgpu": {
+                "status": "supported",
+                "value": false,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "metal": {
+                "status": "supported",
+                "value": false,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "direct3d11": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "direct3d12": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "cuda": {
+                "status": "supported",
+                "value": false,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "levelZero": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "rocm": {
+                "status": "supported",
+                "value": false,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              }
+            },
+            "unifiedMemory": {
+              "status": "supported",
+              "value": false,
+              "provenance": {
+                "source": "bare-gpu-info",
+                "scope": "device"
+              }
+            },
+            "memoryTotalBytes": {
+              "status": "unverified",
+              "reason": "GPU memory scope is unverified"
+            }
+          },
+          {
+            "id": "fe607ff5-ab94-44be-9d95-2254ca42f4ff",
+            "name": {
+              "status": "supported",
+              "value": "NVIDIA GeForce RTX 4060 Laptop GPU",
+              "provenance": {
+                "source": "bare-gpu-info",
+                "scope": "device"
+              }
+            },
+            "vendor": {
+              "status": "supported",
+              "value": "NVIDIA",
+              "provenance": {
+                "source": "bare-gpu-info",
+                "scope": "device"
+              }
+            },
+            "type": {
+              "status": "supported",
+              "value": 2,
+              "provenance": {
+                "source": "bare-gpu-info",
+                "scope": "device"
+              }
+            },
+            "driverName": {
+              "status": "unavailable",
+              "reason": "Metric is unavailable"
+            },
+            "driverVersion": {
+              "status": "supported",
+              "value": "32.0.15.6624",
+              "provenance": {
+                "source": "bare-gpu-info",
+                "scope": "device"
+              }
+            },
+            "drivers": {
+              "vulkan": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "opencl": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "opengl": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "webgpu": {
+                "status": "supported",
+                "value": false,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "metal": {
+                "status": "supported",
+                "value": false,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "direct3d11": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "direct3d12": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "cuda": {
+                "status": "supported",
+                "value": true,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "levelZero": {
+                "status": "supported",
+                "value": false,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              },
+              "rocm": {
+                "status": "supported",
+                "value": false,
+                "provenance": {
+                  "source": "bare-gpu-info"
+                }
+              }
+            },
+            "unifiedMemory": {
+              "status": "supported",
+              "value": false,
+              "provenance": {
+                "source": "bare-gpu-info",
+                "scope": "device"
+              }
+            },
+            "memoryTotalBytes": {
+              "status": "unverified",
+              "reason": "GPU memory scope is unverified"
+            }
+          }
+        ],
+        "provenance": {
+          "source": "bare-gpu-info"
+        }
+      }
+    }
+  },
   "modelos": {
     "llm": {
       "modelSrc": "QWEN3_4B_INST_Q4_K_M",
-      "error": "RPC initialization timed out after 30000ms — the worker process may have failed to start"
+      "modelId": "4317e9f64251604d",
+      "loadSeconds": 274.4
     },
     "ocr": {
       "modelSrc": "OCR_LATIN",
-      "error": "RPC initialization timed out after 30000ms — the worker process may have failed to start"
+      "modelId": "cab5494059c440bf",
+      "loadSeconds": 15.4
     }
   }
 }

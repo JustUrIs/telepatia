@@ -1,0 +1,58 @@
+[
+  {
+    "variante": "clean",
+    "ms": 22120,
+    "bloques": 27,
+    "claves": {
+      "advisoryId": true,
+      "fixedVersion": true,
+      "affected": true,
+      "cve": true,
+      "cvss": true,
+      "reboot": true
+    },
+    "encontradas": 6
+  },
+  {
+    "variante": "rotated",
+    "ms": 16320,
+    "bloques": 36,
+    "claves": {
+      "advisoryId": false,
+      "fixedVersion": true,
+      "affected": true,
+      "cve": true,
+      "cvss": true,
+      "reboot": true
+    },
+    "encontradas": 5
+  },
+  {
+    "variante": "lowcontrast",
+    "ms": 18924,
+    "bloques": 26,
+    "claves": {
+      "advisoryId": true,
+      "fixedVersion": true,
+      "affected": true,
+      "cve": true,
+      "cvss": true,
+      "reboot": true
+    },
+    "encontradas": 6
+  },
+  {
+    "variante": "noisy",
+    "ms": 18469,
+    "bloques": 30,
+    "claves": {
+      "advisoryId": false,
+      "fixedVersion": false,
+      "affected": false,
+      "cve": false,
+      "cvss": false,
+      "reboot": false
+    },
+    "encontradas": 0
+  }
+]

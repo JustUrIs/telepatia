@@ -305,11 +305,73 @@ El paso 7. El pendrive deja de existir en el proceso.
 El expediente de cambio con la evidencia señalada, que es lo que el auditor pide
 y hoy alguien redacta a mano.
 
-> **Sección de números, fuentes y titulares: pendiente de verificación.**
-> Un agente de investigación está buscando las cifras con fuente primaria.
-> No se publica un número acá hasta que tenga origen citable — una estadística
-> sin fuente en un pitch de seguridad es munición para el primer jurado que la
-> googlee.
+### Los números, con fuente primaria
+
+Cada uno verificado contra el documento original, no contra un blog que lo cita.
+
+| Dato | Fuente | Año |
+|---|---|---|
+| **NERC CIP-010-4 R1.6** obliga, antes de cada cambio que se desvíe de la línea base, a *"verify the identity of the software source"* y *"verify the integrity of the software obtained from the software source"* | [NERC CIP-010-4](https://www.nerc.com/globalassets/standards/reliability-standards/cip/cip-010-4.pdf) | vigente |
+| **82%** del malware encontrado en medios USB en instalaciones industriales *"is capable of causing disruption to industrial operations, resulting in loss of view, loss of control, or system outages"* | Honeywell USB Threat Report | 2024 |
+| **USB plug-and-play fue el incidente #1** que atendió el equipo de respuesta de Honeywell: 84 casos, 25% del top 10 | Honeywell Cyber Threat Report, p.13 | 2025 |
+| **20,3%** de los vectores iniciales de incidentes OT reportados fueron medios removibles comprometidos | SANS State of ICS/OT Cybersecurity, Fig. 12 | 2024 |
+| **26%** de los avisos de seguridad ICS salen **sin parche disponible** | Dragos Year in Review | 2026 |
+| **Menos del 10%** de las redes OT del mundo tienen monitoreo de red significativo (es una *estimación* de Dragos, no una medición) | Dragos, OT Threat Landscape | 2026 |
+| **$2.190 por año, por sistema**, solo en horas-hombre de una transferencia manual diaria de medios: 5 min/día × $72/h × 365 | DoD ESTCP, Proyecto EW19-5156, p.22 | 2022 |
+| **85%** de las organizaciones no parchea con regularidad; las barreras son falta de personal (48%), miedo a la parada (47%) y falta de soporte del fabricante (43%). *n=150, muestra chica* | TXOne Networks | 2024 |
+| Mercado de data diodes: **US$0,56 MM (2026) → US$0,77 MM (2031)**, 6,6% anual | MarketsandMarkets, TC 9266 | 2026 |
+| IEC TR 62443-2-3 §4.1, textual: *"Some extremely critical systems may not have outage windows available and can therefore not be patched if a system outage is required to do so."* | IEC TR 62443-2-3 | 2015 |
+
+### Tres cosas que NO se pueden decir, y por qué
+
+Están acá para que nadie las diga en el escenario y se coma la repregunta.
+
+**1. "Nadie resuelve la entrada" es falso.**
+Owl Cyber Defense y Fend (hoy OPSWAT) no publican producto de entrada — eso es
+cierto y verificable. Pero **Waterfall vende el WF FLIP**, un diodo cuya
+orientación se invierte físicamente para actualizaciones programadas, y **Nexor
+vende GuarDiode**, que hace import con sanitización. La categoría existe.
+
+*Lo que sí se puede decir:* los despliegues dominantes y los dos vendors más
+conocidos son de salida; y contra el FLIP, la diferencia defendible es concreta —
+FLIP es un botón físico que abre una ventana de tiempo, sin aprobación por
+artefacto ni registro de qué cruzó. Nosotros aprobamos y firmamos **cada
+transferencia, una por una**, sin hardware dedicado.
+
+**2. Stuxnet entrando a Natanz por USB es inferencia, no registro forense.**
+Lo documentado (Symantec, *W32.Stuxnet Dossier*): Stuxnet se propagaba por
+unidades removibles vía el exploit de LNK, y las infecciones se rastrearon a
+**cinco organizaciones contratistas iraníes**, ~12.000 infecciones. Que un
+pendrive específico haya sido el que cruzó a Natanz **no tiene fuente primaria
+pública**. Se dice *"se evalúa ampliamente que cruzó por medios removibles de un
+contratista"*, nunca como hecho probado.
+
+**3. El ataque a los silos de Jordania entró por phishing, no por USB.**
+Es una gran historia sobre consecuencia física en OT — el objetivo era manipular
+la temperatura de la reserva estratégica de trigo — pero **no sirve como
+evidencia de la tesis de medios removibles.**
+
+### Y una honestidad que fortalece, no debilita
+
+**Dragos, que tiene el mejor conjunto de datos de respuesta a incidentes en OT,
+no ubica los medios removibles entre los vectores principales:** el 73% de sus
+casos de 2025 fueron explotación activa o reuso de credenciales de VPN y
+jumphosts.
+
+O sea: **el USB no es el vector dominante. Es un vector persistente, poco
+monitoreado, y con la peor consecuencia cuando ocurre** — 82% de ese malware
+puede parar la planta. Decirlo así es más defendible que inflarlo, y sobrevive a
+un jurado que conozca el sector.
+
+### El gancho más fuerte, y es regulatorio
+
+De todo lo anterior, lo que mejor calza es **CIP-010-4 R1.6**. Un operador de
+infraestructura crítica en Norteamérica está **obligado por una norma auditable y
+con multas** a probar, antes de cada cambio, la identidad y la integridad del
+software que instala.
+
+Eso es exactamente lo que el producto emite, por cada transferencia, sin que
+nadie tenga que redactarlo.
 
 ---
 

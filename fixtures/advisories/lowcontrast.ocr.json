@@ -1,0 +1,262 @@
+[
+  {
+    "text": "INDUSTRIAL CONTROL SYSTEMS",
+    "bbox": [
+      60,
+      49,
+      516,
+      79
+    ],
+    "confidence": 0.9580121636390686
+  },
+  {
+    "text": "ADVISORY",
+    "bbox": [
+      520,
+      50,
+      667,
+      79
+    ],
+    "confidence": 0.9999454021453857
+  },
+  {
+    "text": "ICSA-26-198-04",
+    "bbox": [
+      62,
+      91,
+      318,
+      124
+    ],
+    "confidence": 0.6609905958175659
+  },
+  {
+    "text": "Vendor: Nordwind Automation GmbH",
+    "bbox": [
+      63,
+      150,
+      435,
+      175
+    ],
+    "confidence": 0.8200860619544983
+  },
+  {
+    "text": "Product: NW-9000 Series PLC",
+    "bbox": [
+      63,
+      183,
+      379,
+      207
+    ],
+    "confidence": 0.8157261610031128
+  },
+  {
+    "text": "Affected versions: 4.0.0",
+    "bbox": [
+      62,
+      215,
+      307,
+      239
+    ],
+    "confidence": 0.9603696465492249
+  },
+  {
+    "text": "4.2.3",
+    "bbox": [
+      322,
+      215,
+      378,
+      239
+    ],
+    "confidence": 0.9998522996902466
+  },
+  {
+    "text": "Fixed in version: 4.3.0",
+    "bbox": [
+      61,
+      247,
+      310,
+      272
+    ],
+    "confidence": 0.7584230303764343
+  },
+  {
+    "text": "CVE-2026-31877",
+    "bbox": [
+      60,
+      300,
+      260,
+      328
+    ],
+    "confidence": 0.9990690350532532
+  },
+  {
+    "text": "CVSS v3.1 base score: 9.8",
+    "bbox": [
+      62,
+      334,
+      342,
+      359
+    ],
+    "confidence": 0.758684515953064
+  },
+  {
+    "text": "SUMMARY",
+    "bbox": [
+      61,
+      393,
+      166,
+      414
+    ],
+    "confidence": 0.9999040365219116
+  },
+  {
+    "text": "An improper authentication vulnerability allows an",
+    "bbox": [
+      62,
+      420,
+      528,
+      447
+    ],
+    "confidence": 0.8296132683753967
+  },
+  {
+    "text": "unauthenticated attacker on the same",
+    "bbox": [
+      62,
+      449,
+      418,
+      469
+    ],
+    "confidence": 0.7083514928817749
+  },
+  {
+    "text": "network segment",
+    "bbox": [
+      423,
+      448,
+      587,
+      475
+    ],
+    "confidence": 0.9765239357948303
+  },
+  {
+    "text": "to bypass the engineering workstation login and write",
+    "bbox": [
+      60,
+      476,
+      562,
+      503
+    ],
+    "confidence": 0.8835318088531494
+  },
+  {
+    "text": "arbitrary ladder logic to the controller.",
+    "bbox": [
+      61,
+      502,
+      412,
+      531
+    ],
+    "confidence": 0.7980528473854065
+  },
+  {
+    "text": "MITIGATION",
+    "bbox": [
+      60,
+      562,
+      183,
+      586
+    ],
+    "confidence": 0.9999009966850281
+  },
+  {
+    "text": "Requires reboot: YES",
+    "bbox": [
+      63,
+      592,
+      304,
+      622
+    ],
+    "confidence": 0.8646586537361145
+  },
+  {
+    "text": "Rollback available: NO",
+    "bbox": [
+      62,
+      624,
+      319,
+      652
+    ],
+    "confidence": 0.9974352717399597
+  },
+  {
+    "text": "Prerequisites: NW-Runtime 2.8.1 or later",
+    "bbox": [
+      61,
+      655,
+      447,
+      681
+    ],
+    "confidence": 0.66651451587677
+  },
+  {
+    "text": "Operators are advised to schedule the update during",
+    "bbox": [
+      62,
+      713,
+      560,
+      741
+    ],
+    "confidence": 0.9527520537376404
+  },
+  {
+    "text": "the next planned maintenance window",
+    "bbox": [
+      60,
+      743,
+      424,
+      768
+    ],
+    "confidence": 0.9047322273254395
+  },
+  {
+    "text": "A cold restart",
+    "bbox": [
+      432,
+      744,
+      561,
+      763
+    ],
+    "confidence": 0.9869232177734375
+  },
+  {
+    "text": "of the controller is required after flashing.",
+    "bbox": [
+      62,
+      768,
+      445,
+      797
+    ],
+    "confidence": 0.8595046401023865
+  },
+  {
+    "text": "Published: 2026-07-17",
+    "bbox": [
+      61,
+      829,
+      262,
+      850
+    ],
+    "confidence": 0.9072428345680237
+  },
+  {
+    "text": "Last revised: 2026-08-02",
+    "bbox": [
+      61,
+      857,
+      286,
+      878
+    ],
+    "confidence": 0.6915615797042847
+  }
+]
