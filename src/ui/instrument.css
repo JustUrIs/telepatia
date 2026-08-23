@@ -1,0 +1,479 @@
+/* ===========================================================================
+   telepatía — chapa de instrumento
+   ---------------------------------------------------------------------------
+   La referencia no es un dashboard: es un equipo de medición. Chasis oscuro,
+   fósforo frío para lo que es máquina, y los tres colores semánticos
+   reservados exclusivamente para el veredicto — si el ámbar apareciera también
+   como acento decorativo, "requiere revisión" dejaría de leerse de un vistazo.
+
+   La máquina habla en monoespaciada. El dictamen, que es un documento que va a
+   leer una persona, habla en serifa.
+   =========================================================================== */
+
+:root {
+  --chasis: #080b0a;
+  --panel: #0f1513;
+  --panel-alto: #16201d;
+  --linea: #22302c;
+  --linea-viva: #354a44;
+
+  --tinta: #d6e5e0;
+  --tinta-baja: #7d918b;
+  --tinta-micro: #55665f;
+
+  --fosforo: #57e2c8;
+  --fosforo-tenue: rgba(87, 226, 200, 0.14);
+
+  --ok: #79dd77;
+  --error: #ff6a55;
+  --warn: #ffb63d;
+
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    Georgia, serif;
+
+  --canal: 1px solid var(--linea);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--chasis);
+  color: var(--tinta);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Textura de chasis: barrido de línea muy tenue, como una pantalla de fósforo.
+   Va en un pseudo-elemento fijo para que no se mueva con el scroll. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.014) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+/* --------------------------------------------------------------- estructura */
+
+.equipo {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) 1fr;
+  gap: 1px;
+  background: var(--linea);
+  min-height: 100vh;
+}
+
+@media (max-width: 860px) {
+  .equipo { grid-template-columns: 1fr; }
+}
+
+.riel {
+  background: var(--panel);
+  padding: 26px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.escena {
+  background: var(--panel);
+  padding: 26px 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ cabecera */
+
+.marca {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 18px;
+  border-bottom: var(--canal);
+}
+
+.marca h1 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--fosforo);
+}
+
+.marca .modelo {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--tinta-micro);
+}
+
+.rol {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--tinta-baja);
+  border: var(--canal);
+  border-radius: 2px;
+  padding: 3px 8px;
+  margin-left: auto;
+}
+
+/* -------------------------------------------------------------- micro-labels */
+
+.micro {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--tinta-micro);
+  margin-bottom: 7px;
+}
+
+/* --------------------------------------------------------------- formularios */
+
+.campo { display: block; }
+.campo + .campo { margin-top: 16px; }
+
+input[type="file"],
+input[type="number"],
+select {
+  width: 100%;
+  background: var(--chasis);
+  color: var(--tinta);
+  border: var(--canal);
+  border-radius: 2px;
+  padding: 9px 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--fosforo);
+  outline-offset: 2px;
+}
+
+input[type="file"]::file-selector-button {
+  background: var(--panel-alto);
+  color: var(--tinta-baja);
+  border: var(--canal);
+  border-radius: 2px;
+  padding: 4px 10px;
+  margin-right: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+button.accion {
+  width: 100%;
+  margin-top: 20px;
+  padding: 13px;
+  background: var(--fosforo);
+  color: var(--chasis);
+  border: 0;
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 120ms ease, transform 60ms ease;
+}
+
+button.accion:hover:not(:disabled) { filter: brightness(1.12); }
+button.accion:active:not(:disabled) { transform: translateY(1px); }
+button.accion:disabled {
+  background: var(--panel-alto);
+  color: var(--tinta-micro);
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------ lecturas */
+
+.lecturas {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--linea);
+  border: var(--canal);
+}
+
+.lectura {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  background: var(--panel);
+  padding: 9px 12px;
+}
+
+.lectura dt {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tinta-micro);
+}
+
+.lectura dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* -------------------------------------------------------------------- estado */
+
+.estado {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  border: var(--canal);
+  border-left-width: 3px;
+  border-radius: 2px;
+  color: var(--tinta-baja);
+}
+
+.estado[data-tono="listo"] { border-left-color: var(--fosforo); color: var(--tinta); }
+.estado[data-tono="emitiendo"],
+.estado[data-tono="escaneando"] {
+  border-left-color: var(--fosforo);
+  color: var(--fosforo);
+  animation: latido 1.6s ease-in-out infinite;
+}
+.estado[data-tono="ok"] { border-left-color: var(--ok); color: var(--ok); }
+.estado[data-tono="error"] { border-left-color: var(--error); color: var(--error); }
+
+@keyframes latido {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* ------------------------------------------------------------------ apertura */
+
+/* El marco con esquinas en L es lo que le dice al usuario dónde apuntar.
+   Se dibuja con dos gradientes cónicos recortados, sin imágenes. */
+.apertura {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: var(--chasis);
+  border: var(--canal);
+  border-radius: 2px;
+  padding: 30px;
+  /* Acotada al viewport: el marco con esquinas en L solo sirve como referencia
+     de encuadre si las cuatro esquinas se ven sin scrollear. */
+  max-height: calc(100vh - 120px);
+}
+
+.apertura::before,
+.apertura::after {
+  content: "";
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--linea-viva);
+}
+
+.apertura::before { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+.apertura::after { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
+
+.apertura canvas,
+.apertura video {
+  display: block;
+  max-width: 100%;
+  max-height: 62vh;
+  border-radius: 2px;
+}
+
+.apertura video { background: #000; width: 100%; }
+
+/* --------------------------------------------------------------- progresión */
+
+/* Barra segmentada, no una píldora lisa: un instrumento cuenta divisiones. */
+.medidor {
+  position: relative;
+  height: 22px;
+  border: var(--canal);
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--chasis);
+}
+
+.medidor .relleno {
+  height: 100%;
+  width: 0%;
+  background: var(--fosforo);
+  transition: width 180ms linear;
+}
+
+.medidor::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0 9px,
+    var(--panel) 9px 11px
+  );
+}
+
+/* ---------------------------------------------------------------- dictamen */
+
+.dictamen {
+  border: var(--canal);
+  border-top-width: 3px;
+  border-radius: 2px;
+  padding: 24px 26px 28px;
+  background: var(--panel-alto);
+}
+
+.dictamen[data-tono="ok"] { border-top-color: var(--ok); }
+.dictamen[data-tono="error"] { border-top-color: var(--error); }
+.dictamen[data-tono="warn"] { border-top-color: var(--warn); }
+
+.dictamen h2 {
+  margin: 0 0 6px;
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.dictamen[data-tono="ok"] h2 { color: var(--ok); }
+.dictamen[data-tono="error"] h2 { color: var(--error); }
+.dictamen[data-tono="warn"] h2 { color: var(--warn); }
+
+.dictamen .bajada,
+.dictamen > p {
+  font-family: var(--serif);
+  font-size: 15.5px;
+  line-height: 1.62;
+  color: var(--tinta-baja);
+  margin: 0 0 20px;
+  max-width: 62ch;
+  white-space: pre-line;
+}
+
+.checks { list-style: none; margin: 0 0 20px; padding: 0; border-top: var(--canal); }
+
+.checks li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 18px;
+  padding: 10px 0 10px 14px;
+  border-bottom: var(--canal);
+  border-left: 2px solid transparent;
+}
+
+.checks li[data-tono="ok"] { border-left-color: var(--linea-viva); }
+.checks li[data-tono="error"] {
+  border-left-color: var(--error);
+  background: rgba(255, 106, 85, 0.06);
+}
+
+.check-label { font-size: 13px; }
+.checks li[data-tono="error"] .check-label { color: var(--error); }
+
+.check-ev {
+  font-size: 11px;
+  color: var(--tinta-micro);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ungrounded {
+  border: 1px dashed var(--warn);
+  border-radius: 2px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  background: rgba(255, 182, 61, 0.05);
+}
+
+.ungrounded h3 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--warn);
+}
+
+.ungrounded p {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 14.5px;
+  color: var(--tinta-baja);
+}
+
+.match {
+  font-size: 11px !important;
+  font-family: var(--mono) !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tinta-micro) !important;
+  border-top: var(--canal);
+  padding-top: 14px;
+  margin: 0 !important;
+}
+
+/* -------------------------------------------------------------- descarga */
+
+.descarga {
+  display: inline-block;
+  padding: 12px 20px;
+  background: var(--ok);
+  color: var(--chasis);
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.descarga:hover { filter: brightness(1.1); }
+
+/* ------------------------------------------------------------------- notas */
+
+.nota {
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--tinta-micro);
+  border-top: var(--canal);
+  padding-top: 14px;
+  margin-top: auto;
+}
+
+.nota code {
+  color: var(--tinta-baja);
+  background: var(--chasis);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
+.nota a { color: var(--fosforo); }

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>telepatía · emisor</title>
+<link rel="stylesheet" href="./instrument.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23080b0a'/><rect x='3' y='3' width='4' height='4' fill='%2357e2c8'/><rect x='9' y='3' width='4' height='4' fill='%2357e2c8'/><rect x='3' y='9' width='4' height='4' fill='%2357e2c8'/><rect x='10' y='10' width='2' height='2' fill='%2357e2c8'/></svg>">
+</head>
+<body>
+
+<main class="equipo">
+
+  <section class="riel">
+    <header class="marca">
+      <h1>telepatía</h1>
+      <span class="modelo">AGP1</span>
+      <span class="rol">Emisor</span>
+    </header>
+
+    <div>
+      <label class="campo">
+        <span class="micro">Documento</span>
+        <input type="file" id="archivo">
+      </label>
+
+      <div class="duo" style="margin-top:16px">
+        <label class="campo" style="margin-top:0">
+          <span class="micro">Bytes / frame</span>
+          <input type="number" id="chunk" value="900" min="32" max="2900" step="1">
+        </label>
+        <label class="campo" style="margin-top:0">
+          <span class="micro">Frames / s</span>
+          <input type="number" id="fps" value="8" min="1" max="30" step="1">
+        </label>
+      </div>
+
+      <button class="accion" id="emitir" disabled>Emitir</button>
+    </div>
+
+    <p class="estado" id="estado">elegí un archivo para empezar</p>
+
+    <dl class="lecturas">
+      <div class="lectura"><dt>docId</dt><dd id="r-doc">—</dd></div>
+      <div class="lectura"><dt>Frames de datos</dt><dd id="r-total">—</dd></div>
+      <div class="lectura"><dt>Cuerpo</dt><dd id="r-vuelta">—</dd></div>
+      <div class="lectura"><dt>Versión QR</dt><dd id="r-version">—</dd></div>
+      <div class="lectura"><dt>Vuelta completa</dt><dd id="r-ciclo">—</dd></div>
+      <div class="lectura"><dt>Frame actual</dt><dd id="r-frame">—</dd></div>
+      <div class="lectura"><dt>Vueltas emitidas</dt><dd id="r-lap">0</dd></div>
+      <div class="lectura"><dt>Frames emitidos</dt><dd id="r-emitidos">0</dd></div>
+    </dl>
+
+    <p class="nota">
+      El documento se parte en frames con paridad XOR y se emite en loop
+      infinito: el receptor puede entrar en cualquier momento y perder frames
+      sin que nadie retransmita nada. No hay canal de vuelta — la luz va en una
+      sola dirección, y esa es la propiedad que hace segura la transferencia.
+    </p>
+  </section>
+
+  <section class="escena">
+    <div class="apertura">
+      <canvas id="lienzo" width="720" height="720"></canvas>
+    </div>
+  </section>
+
+</main>
+
+<script type="module">
+  import { mount } from './dist/sender.bundle.js';
+  mount(document);
+</script>
+
+</body>
+</html>

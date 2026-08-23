@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>telepatía · receptor</title>
+<link rel="stylesheet" href="./instrument.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23080b0a'/><circle cx='8' cy='8' r='5' fill='none' stroke='%2357e2c8' stroke-width='1.6'/><circle cx='8' cy='8' r='1.6' fill='%2357e2c8'/></svg>">
+</head>
+<body>
+
+<main class="equipo">
+
+  <section class="riel">
+    <header class="marca">
+      <h1>telepatía</h1>
+      <span class="modelo">AGP1</span>
+      <span class="rol">Receptor</span>
+    </header>
+
+    <div>
+      <span class="micro">Captura</span>
+      <button class="accion" id="camara" style="margin-top:0">Encender cámara</button>
+    </div>
+
+    <p class="estado" id="estado">encendé la cámara para empezar</p>
+
+    <div>
+      <span class="micro">Documento reconstruido</span>
+      <div class="medidor"><div class="relleno" id="barra"></div></div>
+    </div>
+
+    <dl class="lecturas">
+      <div class="lectura"><dt>docId</dt><dd id="r-doc">—</dd></div>
+      <div class="lectura"><dt>Progreso</dt><dd id="r-progreso">0%</dd></div>
+      <div class="lectura"><dt>Cuadros vistos</dt><dd id="r-frames">0</dd></div>
+      <div class="lectura"><dt>Cuadros con QR</dt><dd id="r-hits">0</dd></div>
+      <div class="lectura"><dt>Recuperados por paridad</dt><dd id="r-recuperados">0</dd></div>
+      <div class="lectura"><dt>QR ajenos</dt><dd id="r-ajenos">0</dd></div>
+    </dl>
+
+    <a class="descarga" id="descarga" hidden download>Guardar</a>
+
+    <p class="nota">
+      El documento se da por bueno solo si el SHA-256 de lo reconstruido
+      coincide con el que declaró el emisor. Un frame perdido por ventana lo
+      recupera la paridad sin pedir retransmisión; dos, no — y entonces se
+      espera a la próxima vuelta del carrusel.
+    </p>
+  </section>
+
+  <section class="escena">
+    <div class="apertura">
+      <video id="video" playsinline muted></video>
+    </div>
+    <div class="dictamen" id="dictamen" hidden></div>
+  </section>
+
+</main>
+
+<script type="module">
+  import { mount } from './dist/receiver.bundle.js';
+  mount(document);
+</script>
+
+</body>
+</html>
