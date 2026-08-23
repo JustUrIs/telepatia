@@ -456,12 +456,33 @@ export function mount(doc = globalThis.document) {
   function revisarPermiso() {
     if (modoTexto()) return;
 
-    if (archivo === null || informePre === null) {
+    if (archivo === null) {
       botonEmitir.disabled = true;
       recibo.hidden = true;
-      if (archivo !== null && informePre === null) {
-        setEstado('falta el informe de pre-flight de este programa', 'idle');
-      }
+      return;
+    }
+
+    // Sin informe, la herramienta es un transporte y nada más: se puede mandar
+    // cualquier archivo. El informe es lo que la convierte en una compuerta.
+    //
+    // Que sea opcional es deliberado: obligarlo haría inútil el canal para
+    // todo lo que no sea un programa de máquina —una clave, una config, un
+    // log— y esos casos existen. Lo que no puede pasar es lo contrario: que
+    // haya un informe y se ignore.
+    if (informePre === null) {
+      botonEmitir.disabled = false;
+      recibo.hidden = false;
+      recibo.dataset.tono = 'idle';
+      recibo.innerHTML = '';
+
+      const titulo = doc.createElement('h3');
+      titulo.textContent = 'SIN CONTROL PREVIO';
+      const detalle = doc.createElement('p');
+      detalle.textContent = 'Se va a enviar tal cual, sin verificar contra una orden '
+        + 'de trabajo. Cargá el informe de pre-flight si querés que lo controle.';
+
+      recibo.append(titulo, detalle);
+      setEstado(`${nombreArchivo} · listo para enviar sin control`, 'listo');
       return;
     }
 

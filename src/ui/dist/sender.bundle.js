@@ -2668,12 +2668,22 @@ function mount(doc = globalThis.document) {
   let informePre = null;
   function revisarPermiso() {
     if (modoTexto()) return;
-    if (archivo === null || informePre === null) {
+    if (archivo === null) {
       botonEmitir.disabled = true;
       recibo.hidden = true;
-      if (archivo !== null && informePre === null) {
-        setEstado("falta el informe de pre-flight de este programa", "idle");
-      }
+      return;
+    }
+    if (informePre === null) {
+      botonEmitir.disabled = false;
+      recibo.hidden = false;
+      recibo.dataset.tono = "idle";
+      recibo.innerHTML = "";
+      const titulo2 = doc.createElement("h3");
+      titulo2.textContent = "SIN CONTROL PREVIO";
+      const detalle2 = doc.createElement("p");
+      detalle2.textContent = "Se va a enviar tal cual, sin verificar contra una orden de trabajo. Carg\xE1 el informe de pre-flight si quer\xE9s que lo controle.";
+      recibo.append(titulo2, detalle2);
+      setEstado(`${nombreArchivo} \xB7 listo para enviar sin control`, "listo");
       return;
     }
     const { ok, reason, resumen } = validateApproval(informePre, archivo);

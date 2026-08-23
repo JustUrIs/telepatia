@@ -740,3 +740,6 @@ textarea#texto::placeholder { color: var(--tinta-micro); }
   line-height: 1.6;
   color: var(--error);
 }
+
+.recibo[data-tono="idle"] { border-left-color: var(--linea-viva); }
+.recibo[data-tono="idle"] h3 { color: var(--tinta-baja); }
