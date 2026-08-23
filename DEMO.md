@@ -24,7 +24,7 @@ Si la máquina tiene poca RAM: `--preset lowMemory` (1,5 GB en vez de 2,6).
 Verificá que todo esté verde antes de empezar:
 
 ```bash
-node --test "test/*.test.js"      # 357 tests
+node --test "test/*.test.js"      # 384 tests
 ```
 
 ---
