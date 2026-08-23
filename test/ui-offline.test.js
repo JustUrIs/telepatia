@@ -85,6 +85,6 @@ test('las paginas piden el estado del precache y lo muestran', () => {
   for (const pagina of ['src/ui/sender.html', 'src/ui/receiver.html']) {
     const html = readFileSync(pagina, 'utf8');
     assert.match(html, /postMessage\('estado'\)/, `${pagina} no consulta el estado`);
-    assert.match(html, /offline parcial/, `${pagina} no muestra un precache incompleto`);
+    assert.match(html, /offline parcial/i, `${pagina} no muestra un precache incompleto`);
   }
 });

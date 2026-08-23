@@ -28,6 +28,27 @@ export const MAX_BYTES = 4 * 1024 * 1024;
 /** A partir de acá se avisa que va a tardar, pero se deja hacer. */
 export const AVISO_BYTES = 256 * 1024;
 
+/** Extensiones habituales de instrucciones para máquinas CNC. */
+export function esProgramaDeMaquina(nombre) {
+  return /\.(?:nc|gcode|tap|cnc)$/i.test(String(nombre ?? '').trim());
+}
+
+/** Parejas reales que permiten probar el flujo sin buscar archivos a mano. */
+export const DEMOS = Object.freeze({
+  aprobado: Object.freeze({
+    programa: '../../fixtures/programs/part-1837-revC.nc',
+    informe: '../../fixtures/programs/part-1837-revC.preflight.json',
+    nombre: 'part-1837-revC.nc',
+    etiqueta: 'Caso aprobado cargado: revisión C y su informe de control.',
+  }),
+  bloqueado: Object.freeze({
+    programa: '../../fixtures/programs/part-1837-revB.nc',
+    informe: '../../fixtures/programs/part-1837-revB.preflight.json',
+    nombre: 'part-1837-revB.nc',
+    etiqueta: 'Caso bloqueado cargado: revisión B y su informe de control.',
+  }),
+});
+
 /**
  * @typedef {object} EmissionPlan
  * @property {number} docId
@@ -205,6 +226,11 @@ export function mount(doc = globalThis.document) {
   const ctx = canvas.getContext('2d', { alpha: false });
   const botonEmitir = $('emitir');
   const estado = $('estado');
+  const informeInput = $('informe');
+  const recibo = $('recibo');
+  const seleccionDemo = $('seleccion-demo');
+  const botonDemoAprobado = $('demo-aprobado');
+  const botonDemoBloqueado = $('demo-bloqueado');
 
   const lecturas = {
     doc: $('r-doc'), total: $('r-total'), vuelta: $('r-vuelta'), version: $('r-version'),
@@ -220,6 +246,7 @@ export function mount(doc = globalThis.document) {
   let corriendo = false;
   let ultimoPintado = 0;
   let wakeLock = null;
+  /** @type {object|null} */ let informePre = null;
 
   const setEstado = (texto, tono = 'idle') => {
     estado.textContent = texto;
@@ -316,6 +343,19 @@ export function mount(doc = globalThis.document) {
   fileInput.addEventListener('change', async () => {
     const file = fileInput.files?.[0];
     if (!file) return;
+    if (!esProgramaDeMaquina(file.name)) {
+      archivo = null;
+      informePre = null;
+      botonEmitir.disabled = true;
+      recibo.hidden = true;
+      fileInput.value = '';
+      if (seleccionDemo) seleccionDemo.textContent = 'Ese archivo no es un programa de máquina.';
+      setEstado(
+        'Una foto o un JSON no se pueden ejecutar. Elegí un archivo .nc, .gcode, .tap o .cnc.',
+        'error',
+      );
+      return;
+    }
     // Se mira el tamaño ANTES de leer el archivo a memoria: no tiene sentido
     // cargar 200 MB en un ArrayBuffer para después rechazarlo.
     if (file.size > MAX_BYTES) {
@@ -331,6 +371,9 @@ export function mount(doc = globalThis.document) {
     archivo = new Uint8Array(await file.arrayBuffer());
     nombreArchivo = file.name;
     tipoArchivo = file.type || 'application/octet-stream';
+    if (seleccionDemo) seleccionDemo.textContent = `Programa propio: ${nombreArchivo}. Falta su informe de control.`;
+    botonDemoAprobado?.setAttribute('aria-pressed', 'false');
+    botonDemoBloqueado?.setAttribute('aria-pressed', 'false');
     // El archivo por si solo ya no habilita nada: el permiso sale del informe.
     invalidarPermiso();
 
@@ -348,7 +391,7 @@ export function mount(doc = globalThis.document) {
   botonEmitir.addEventListener('click', async () => {
     if (corriendo) {
       corriendo = false;
-      botonEmitir.textContent = 'Emitir';
+      botonEmitir.textContent = 'Emitir por luz';
       wakeLock?.release?.();
       setEstado('emisión detenida', 'idle');
       return;
@@ -448,10 +491,6 @@ export function mount(doc = globalThis.document) {
   // el error humano y el cambio accidental, que es el caso frecuente en un
   // taller, y nada más que eso.
 
-  const informeInput = $('informe');
-  const recibo = $('recibo');
-  /** @type {object|null} */ let informePre = null;
-
   /** Recalcula el permiso y deja la UI diciendo la verdad sobre por qué. */
   function revisarPermiso() {
     if (modoTexto()) return;
@@ -460,7 +499,7 @@ export function mount(doc = globalThis.document) {
       botonEmitir.disabled = true;
       recibo.hidden = true;
       if (archivo !== null && informePre === null) {
-        setEstado('falta el informe de pre-flight de este programa', 'idle');
+        setEstado('Falta el informe de control creado para este programa.', 'idle');
       }
       return;
     }
@@ -474,8 +513,8 @@ export function mount(doc = globalThis.document) {
 
     const titulo = doc.createElement('h3');
     titulo.textContent = ok
-      ? 'APROBADO · bytes exactos verificados'
-      : { approve: 'NO COINCIDE', review: 'REVISAR', block: 'BLOQUEADO' }[resumen?.veredicto] ?? 'SIN INFORME VÁLIDO';
+      ? 'APROBADO · ES EL ARCHIVO CORRECTO'
+      : { approve: 'NO COINCIDE', review: 'NECESITA REVISIÓN', block: 'BLOQUEADO' }[resumen?.veredicto] ?? 'ESE JSON NO ES UN INFORME';
 
     const detalle = doc.createElement('p');
     detalle.textContent = reason;
@@ -523,7 +562,7 @@ export function mount(doc = globalThis.document) {
   function invalidarPermiso() {
     if (corriendo) {
       corriendo = false;
-      botonEmitir.textContent = 'Emitir';
+      botonEmitir.textContent = 'Emitir por luz';
       wakeLock?.release?.();
     }
     revisarPermiso();
@@ -541,8 +580,46 @@ export function mount(doc = globalThis.document) {
     invalidarPermiso();
   });
 
+  /** Carga programa + informe como una sola unidad: no hay campos para adivinar. */
+  async function cargarDemo(tipo) {
+    const demo = DEMOS[tipo];
+    if (!demo) return;
+
+    setEstado('Cargando el caso de prueba…');
+    botonEmitir.disabled = true;
+    try {
+      const [respuestaPrograma, respuestaInforme] = await Promise.all([
+        fetch(new URL(demo.programa, globalThis.location.href)),
+        fetch(new URL(demo.informe, globalThis.location.href)),
+      ]);
+      if (!respuestaPrograma.ok || !respuestaInforme.ok) {
+        throw new Error('no se pudieron abrir los archivos de ejemplo');
+      }
+
+      archivo = new Uint8Array(await respuestaPrograma.arrayBuffer());
+      informePre = await respuestaInforme.json();
+      nombreArchivo = demo.nombre;
+      tipoArchivo = 'text/plain';
+      fileInput.value = '';
+      informeInput.value = '';
+      cambiarModo('archivo');
+      if (seleccionDemo) seleccionDemo.textContent = demo.etiqueta;
+      botonDemoAprobado?.setAttribute('aria-pressed', String(tipo === 'aprobado'));
+      botonDemoBloqueado?.setAttribute('aria-pressed', String(tipo === 'bloqueado'));
+      invalidarPermiso();
+    } catch (err) {
+      archivo = null;
+      informePre = null;
+      recibo.hidden = true;
+      setEstado(`No pude cargar el ejemplo: ${err.message}`, 'error');
+    }
+  }
+
+  botonDemoAprobado?.addEventListener('click', () => cargarDemo('aprobado'));
+  botonDemoBloqueado?.addEventListener('click', () => cargarDemo('bloqueado'));
+
   const diag = $('diagnostico');
   if (diag) diag.textContent = describeEnvironment(globalThis);
 
-  setEstado('elegí un archivo para empezar');
+  setEstado('Elegí un caso para empezar.');
 }
