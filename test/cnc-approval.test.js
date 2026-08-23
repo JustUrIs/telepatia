@@ -26,7 +26,7 @@ test('el informe aprobado habilita SU archivo', () => {
 test('un informe BLOQUEADO no habilita nada', () => {
   const r = validateApproval(informeB, bytesB);
   assert.equal(r.ok, false);
-  assert.match(r.reason, /BLOQUE/i);
+  assert.match(r.reason, /bloque/i);
   // Y el motivo concreto viaja, para que la UI no tenga que adivinar.
   assert.ok(r.resumen.motivos.length > 0);
 });
@@ -35,7 +35,7 @@ test('un informe aprobado NO habilita otro archivo', () => {
   // El caso que este control existe para cerrar: aprobar uno y mandar otro.
   const r = validateApproval(informeC, bytesB);
   assert.equal(r.ok, false);
-  assert.match(r.reason, /no es el que se aprob/i);
+  assert.match(r.reason, /no es el archivo que fue aprobado/i);
   assert.notEqual(r.resumen.esperado, r.resumen.real);
 });
 
@@ -45,7 +45,7 @@ test('cambiar UN byte después del pre-flight invalida el permiso', () => {
 
   const r = validateApproval(informeC, tocado);
   assert.equal(r.ok, false);
-  assert.match(r.reason, /bytes no coinciden/i);
+  assert.match(r.reason, /su contenido cambi/i);
 });
 
 test('un espacio al final de una linea tambien invalida', () => {
@@ -59,7 +59,7 @@ test('un informe en REVISION tampoco habilita', () => {
   const enRevision = { ...informeC, veredicto: 'review', motivos: ['un dato sin anclar'] };
   const r = validateApproval(enRevision, bytesC);
   assert.equal(r.ok, false);
-  assert.match(r.reason, /REVISI/i);
+  assert.match(r.reason, /revise|revisi/i);
 });
 
 test('entrada corrupta falla cerrado y sin lanzar', () => {

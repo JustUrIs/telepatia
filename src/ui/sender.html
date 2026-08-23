@@ -3,147 +3,137 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>telepatía · emisor</title>
+<title>telepatía · enviar</title>
 <link rel="stylesheet" href="./instrument.css">
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#080b0a">
+<meta name="theme-color" content="#f4f1e9">
 <link rel="apple-touch-icon" href="./icon.svg">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23080b0a'/><rect x='3' y='3' width='4' height='4' fill='%2357e2c8'/><rect x='9' y='3' width='4' height='4' fill='%2357e2c8'/><rect x='3' y='9' width='4' height='4' fill='%2357e2c8'/><rect x='10' y='10' width='2' height='2' fill='%2357e2c8'/></svg>">
 </head>
 <body>
-
 <main class="equipo">
-
   <section class="riel">
     <header class="marca">
-      <h1>telepatía</h1>
+      <a class="logotipo" href="../../">telepatía<span aria-hidden="true">.</span></a>
       <span class="modelo">AGP1</span>
-      <span class="rol">Emisor</span>
+      <span class="rol">Enviar</span>
     </header>
-
-    <div>
-      <div class="pestanas" role="tablist">
-        <button role="tab" data-modo="archivo" aria-selected="true">Archivo</button>
-        <button role="tab" data-modo="texto" aria-selected="false">Texto</button>
-      </div>
-
-      <div id="panel-archivo">
-        <label class="campo">
-          <span class="micro">Programa</span>
-          <input type="file" id="archivo">
-        </label>
-
-        <label class="campo">
-          <span class="micro">Informe de pre-flight</span>
-          <input type="file" id="informe" accept=".json,application/json">
-        </label>
-
-        <div class="recibo" id="recibo" hidden></div>
-      </div>
-
-      <div id="panel-texto" hidden>
-        <label class="campo">
-          <span class="micro">Texto a emitir</span>
-          <textarea id="texto" rows="5" placeholder="Pegá acá lo que quieras mandar. Una clave, un JSON, una dirección…"></textarea>
-        </label>
-      </div>
-
-      <div class="duo" style="margin-top:16px">
-        <label class="campo" style="margin-top:0">
-          <span class="micro">Bytes / frame</span>
-          <select id="chunk">
-            <option value="300">300 · V11 · lejos</option>
-            <option value="600">600 · V17</option>
-            <option value="900" selected>900 · V21 · normal</option>
-            <option value="1400">1400 · V27</option>
-            <option value="2000">2000 · V33</option>
-            <option value="2900">2900 · V40 · cerca</option>
-          </select>
-        </label>
-        <label class="campo" style="margin-top:0">
-          <span class="micro">Frames / s</span>
-          <input type="number" id="fps" value="8" min="1" max="30" step="1">
-        </label>
-      </div>
-
-      <button class="accion" id="emitir" disabled>Emitir</button>
+    <div class="introduccion">
+      <p class="eyebrow">Paso 1 de 2</p>
+      <h1>Elegí qué querés pasar.</h1>
+      <p>Para probarlo ahora, usá uno de estos casos preparados.</p>
     </div>
-
-    <p class="diagnostico" id="diagnostico"></p>
-    <p class="estado estado-mini" id="offline" data-tono="idle">comprobando modo offline…</p>
-    <p class="estado" id="estado">elegí un archivo para empezar</p>
-
-    <dl class="lecturas">
-      <div class="lectura"><dt>docId</dt><dd id="r-doc">—</dd></div>
-      <div class="lectura"><dt>Frames de datos</dt><dd id="r-total">—</dd></div>
-      <div class="lectura"><dt>Cuerpo</dt><dd id="r-vuelta">—</dd></div>
-      <div class="lectura"><dt>Versión QR</dt><dd id="r-version">—</dd></div>
-      <div class="lectura"><dt>Vuelta completa</dt><dd id="r-ciclo">—</dd></div>
-      <div class="lectura"><dt>Frame actual</dt><dd id="r-frame">—</dd></div>
-      <div class="lectura"><dt>Vueltas emitidas</dt><dd id="r-lap">0</dd></div>
-      <div class="lectura"><dt>Frames emitidos</dt><dd id="r-emitidos">0</dd></div>
-    </dl>
-
-    <p class="nota">
-      El documento se parte en frames con paridad XOR y se emite en loop
-      infinito: el receptor puede entrar en cualquier momento y perder frames
-      sin que nadie retransmita nada. No hay canal de vuelta — la luz va en una
-      sola dirección, y esa es la propiedad que hace segura la transferencia.
-    </p>
+    <section class="pruebas" aria-labelledby="titulo-pruebas">
+      <h2 id="titulo-pruebas">Prueba rápida</h2>
+      <div class="prueba-grid">
+        <button class="prueba prueba-ok" id="demo-aprobado" type="button">
+          <span class="prueba-icono" aria-hidden="true">✓</span>
+          <span><strong>Caso aprobado</strong><small>Todo coincide. Se puede enviar.</small></span>
+        </button>
+        <button class="prueba prueba-error" id="demo-bloqueado" type="button">
+          <span class="prueba-icono" aria-hidden="true">×</span>
+          <span><strong>Caso bloqueado</strong><small>Hay errores. No deja enviarlo.</small></span>
+        </button>
+      </div>
+      <p class="seleccion" id="seleccion-demo">Todavía no elegiste un caso.</p>
+    </section>
+    <details class="desplegable" id="carga-manual">
+      <summary>Cargar mis propios archivos</summary>
+      <div class="desplegable-cuerpo">
+        <div class="pestanas" role="tablist" aria-label="Tipo de envío">
+          <button role="tab" data-modo="archivo" aria-selected="true">Programa</button>
+          <button role="tab" data-modo="texto" aria-selected="false">Texto</button>
+        </div>
+        <div id="panel-archivo">
+          <p class="ayuda"><strong>Programa</strong> = las instrucciones que ejecutará la máquina. <strong>Informe de control</strong> = el comprobante que dice si esas instrucciones coinciden con la orden.</p>
+          <label class="campo">
+            <span>1. Programa de máquina</span>
+            <small>Solo archivos .nc, .gcode, .tap o .cnc; una foto no es un programa.</small>
+            <input type="file" id="archivo" accept=".nc,.gcode,.tap,.cnc,text/plain,application/octet-stream">
+          </label>
+          <label class="campo">
+            <span>2. Informe de control</span>
+            <small>El JSON creado por Telepatía para ese mismo programa.</small>
+            <input type="file" id="informe" accept=".json,application/json">
+          </label>
+          <div class="recibo" id="recibo" hidden></div>
+        </div>
+        <div id="panel-texto" hidden>
+          <label class="campo">
+            <span>Texto a enviar</span>
+            <textarea id="texto" rows="5" placeholder="Pegá acá un texto breve…"></textarea>
+          </label>
+        </div>
+      </div>
+    </details>
+    <section class="decision" aria-live="polite">
+      <p class="estado" id="estado">Elegí un caso para empezar.</p>
+      <button class="accion" id="emitir" disabled>Emitir por luz</button>
+    </section>
+    <details class="desplegable tecnico">
+      <summary>Detalles técnicos</summary>
+      <div class="desplegable-cuerpo">
+        <div class="duo">
+          <label class="campo">
+            <span>Datos por imagen</span>
+            <select id="chunk">
+              <option value="300">300 · V11 · lejos</option>
+              <option value="600">600 · V17</option>
+              <option value="900" selected>900 · V21 · normal</option>
+              <option value="1400">1400 · V27</option>
+              <option value="2000">2000 · V33</option>
+              <option value="2900">2900 · V40 · cerca</option>
+            </select>
+          </label>
+          <label class="campo"><span>Imágenes por segundo</span><input type="number" id="fps" value="8" min="1" max="30" step="1"></label>
+        </div>
+        <dl class="lecturas">
+          <div class="lectura"><dt>Documento</dt><dd id="r-doc">—</dd></div>
+          <div class="lectura"><dt>Partes</dt><dd id="r-total">—</dd></div>
+          <div class="lectura"><dt>Compresión</dt><dd id="r-vuelta">—</dd></div>
+          <div class="lectura"><dt>QR</dt><dd id="r-version">—</dd></div>
+          <div class="lectura"><dt>Vuelta</dt><dd id="r-ciclo">—</dd></div>
+          <div class="lectura"><dt>Parte actual</dt><dd id="r-frame">—</dd></div>
+          <div class="lectura"><dt>Vueltas</dt><dd id="r-lap">0</dd></div>
+          <div class="lectura"><dt>Mostradas</dt><dd id="r-emitidos">0</dd></div>
+        </dl>
+        <p class="diagnostico" id="diagnostico"></p>
+        <p class="estado estado-mini" id="offline" data-tono="idle">Preparando uso sin conexión…</p>
+      </div>
+    </details>
   </section>
-
   <section class="escena">
-    <div class="apertura">
-      <canvas id="lienzo" width="720" height="720"></canvas>
+    <div class="escena-cabecera"><span>La pantalla se vuelve el cable</span><span class="en-vivo">luz unidireccional</span></div>
+    <div class="apertura apertura-qr">
+      <canvas id="lienzo" width="720" height="720" aria-label="Código dinámico de transmisión"></canvas>
+      <div class="umbral" aria-hidden="true"></div>
     </div>
+    <p class="escena-pie">En el otro equipo, abrí “Recibir” y apuntá la cámara a esta pantalla.</p>
   </section>
-
 </main>
-
 <script type="module">
   import { mount } from './dist/sender.bundle.js';
   mount(document);
-
-  // El estado del modo offline va a la vista, no a la consola: en un celular
-  // nadie abre devtools, y "no anda" sin motivo es peor que no tenerlo.
   const marcar = (texto, tono) => {
     const el = document.getElementById('offline');
     if (!el) return;
     el.textContent = texto;
     el.dataset.tono = tono;
   };
-
   if (!('serviceWorker' in navigator)) {
-    marcar('offline no disponible en este browser', 'error');
+    marcar('Sin modo offline: abrí la app por HTTPS o localhost.', 'error');
   } else {
-    // El worker vive en la raiz: desde /src/ui/ solo controlaria esta carpeta,
-    // y la portada quedaria afuera del alcance.
     navigator.serviceWorker.register('../../sw.js', { scope: '../../' })
       .then(async (reg) => {
         await navigator.serviceWorker.ready;
-        marcar('offline listo · funciona sin red', 'ok');
-
-        // Si algo del shell no se pudo cachear, la pagina lo dice en vez de
-        // prometer un offline que despues falla.
+        marcar('Disponible sin conexión.', 'ok');
         navigator.serviceWorker.addEventListener('message', (ev) => {
           const f = ev.data?.faltantes;
-          if (Array.isArray(f) && f.length > 0) {
-            marcar('offline parcial · sin cachear: ' + f.join(', '), 'error');
-          }
+          if (Array.isArray(f) && f.length > 0) marcar('Offline parcial: faltan recursos.', 'error');
         });
         (reg.active ?? navigator.serviceWorker.controller)?.postMessage('estado');
       })
-      .catch((err) => {
-        // Causa numero uno: certificado no confiable. Chrome no registra
-        // service workers en un origen con error de certificado, aunque hayas
-        // tocado "continuar de todos modos".
-        const causa = window.isSecureContext
-          ? err.message
-          : 'el origen no es un contexto seguro';
-        marcar('offline no disponible: ' + causa, 'error');
-      });
+      .catch(() => marcar('Sin modo offline: el certificado no es confiable.', 'error'));
   }
 </script>
-
 </body>
 </html>

@@ -210,7 +210,7 @@ test('un origen inseguro se reporta como problema de direccion, no de permiso', 
 
 test('contexto seguro sin mediaDevices se reporta como browser, no como direccion', () => {
   const d = diagnoseCamera(entorno({ isSecureContext: true, navigator: {} }));
-  assert.match(d.title, /browser/i);
+  assert.match(d.title, /navegador|browser/i);
   assert.doesNotMatch(d.detail, /localhost/);
 });
 

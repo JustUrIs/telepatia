@@ -3,122 +3,89 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>telepatía · receptor</title>
+<title>telepatía · recibir</title>
 <link rel="stylesheet" href="./instrument.css">
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#080b0a">
+<meta name="theme-color" content="#f4f1e9">
 <link rel="apple-touch-icon" href="./icon.svg">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23080b0a'/><circle cx='8' cy='8' r='5' fill='none' stroke='%2357e2c8' stroke-width='1.6'/><circle cx='8' cy='8' r='1.6' fill='%2357e2c8'/></svg>">
 </head>
 <body>
-
 <main class="equipo">
-
   <section class="riel">
     <header class="marca">
-      <h1>telepatía</h1>
+      <a class="logotipo" href="../../">telepatía<span aria-hidden="true">.</span></a>
       <span class="modelo">AGP1</span>
-      <span class="rol">Receptor</span>
+      <span class="rol">Recibir</span>
     </header>
-
-    <div>
-      <span class="micro">Captura</span>
-      <button class="accion" id="camara" style="margin-top:0">Encender cámara</button>
+    <div class="introduccion">
+      <p class="eyebrow">Paso 2 de 2</p>
+      <h1>Apuntá y recibí.</h1>
+      <p>Abrí la cámara y encuadrá los códigos de la otra pantalla.</p>
     </div>
-
-    <p class="diagnostico" id="diagnostico"></p>
-    <p class="estado estado-mini" id="offline" data-tono="idle">comprobando modo offline…</p>
-    <p class="estado" id="estado">encendé la cámara para empezar</p>
-
-    <div>
-      <span class="micro">Documento reconstruido</span>
+    <section class="decision">
+      <button class="accion" id="camara">Abrir cámara</button>
+      <p class="estado" id="estado">La cámara está apagada.</p>
+      <div class="progreso-simple" aria-label="Progreso del archivo"><span>Archivo recibido</span><strong id="progreso-grande">0%</strong></div>
       <div class="medidor"><div class="relleno" id="barra"></div></div>
-    </div>
-
-    <dl class="lecturas">
-      <div class="lectura"><dt>docId</dt><dd id="r-doc">—</dd></div>
-      <div class="lectura"><dt>Progreso</dt><dd id="r-progreso">0%</dd></div>
-      <div class="lectura"><dt>Cuadros vistos</dt><dd id="r-frames">0</dd></div>
-      <div class="lectura"><dt>Cuadros con QR</dt><dd id="r-hits">0</dd></div>
-      <div class="lectura"><dt>Recuperados por paridad</dt><dd id="r-recuperados">0</dd></div>
-      <div class="lectura"><dt>QR ajenos</dt><dd id="r-ajenos">0</dd></div>
-    </dl>
-
-    <a class="descarga" id="descarga" hidden download>Guardar</a>
-
-    <div>
-      <span class="micro">Informe de pre-flight (opcional)</span>
-      <input type="file" id="verdicto" accept=".json,application/json">
-      <p class="nota" style="margin-top:10px;border:0;padding:0">
-        El pre-flight corre en la laptop del técnico, no acá: el modelo y los
-        documentos de taller viven de ese lado. Cargá el informe que escribe
-        <code>bin/preflight.mjs</code> para ver qué se verificó antes de que
-        este archivo cruzara.
-      </p>
-    </div>
-
-    <p class="nota">
-      El documento se da por bueno solo si el SHA-256 de lo reconstruido
-      coincide con el que declaró el emisor. Un frame perdido por ventana lo
-      recupera la paridad sin pedir retransmisión; dos, no — y entonces se
-      espera a la próxima vuelta del carrusel.
-    </p>
+    </section>
+    <p class="explicacion-corta">No hay conexión entre los equipos: esta cámara solo lee la luz de la otra pantalla.</p>
+    <a class="descarga" id="descarga" hidden download>Guardar archivo</a>
+    <details class="desplegable tecnico">
+      <summary>Informe y detalles</summary>
+      <div class="desplegable-cuerpo">
+        <label class="campo">
+          <span>Ver un informe de control (opcional)</span>
+          <small>Sirve para mostrar por qué el archivo había sido aprobado o bloqueado.</small>
+          <input type="file" id="verdicto" accept=".json,application/json">
+        </label>
+        <dl class="lecturas">
+          <div class="lectura"><dt>Documento</dt><dd id="r-doc">—</dd></div>
+          <div class="lectura"><dt>Progreso</dt><dd id="r-progreso">0%</dd></div>
+          <div class="lectura"><dt>Imágenes vistas</dt><dd id="r-frames">0</dd></div>
+          <div class="lectura"><dt>Códigos leídos</dt><dd id="r-hits">0</dd></div>
+          <div class="lectura"><dt>Partes recuperadas</dt><dd id="r-recuperados">0</dd></div>
+          <div class="lectura"><dt>Códigos ajenos</dt><dd id="r-ajenos">0</dd></div>
+        </dl>
+        <p class="diagnostico" id="diagnostico"></p>
+        <p class="estado estado-mini" id="offline" data-tono="idle">Preparando uso sin conexión…</p>
+      </div>
+    </details>
   </section>
-
-  <section class="escena">
+  <section class="escena escena-receptor">
+    <div class="escena-cabecera"><span>Cámara del receptor</span><span class="en-vivo">lectura local</span></div>
     <div class="apertura" id="apertura">
-      <video id="video" playsinline muted></video>
+      <video id="video" playsinline muted autoplay></video>
+      <div class="reticula" aria-hidden="true"><span></span></div>
     </div>
     <div class="resultado" id="resultado" hidden></div>
     <div class="dictamen" id="dictamen" hidden></div>
+    <p class="escena-pie">Acercá la cámara hasta que el código ocupe el recuadro.</p>
   </section>
-
 </main>
-
 <script type="module">
   import { mount } from './dist/receiver.bundle.js';
   mount(document);
-
-  // El estado del modo offline va a la vista, no a la consola: en un celular
-  // nadie abre devtools, y "no anda" sin motivo es peor que no tenerlo.
   const marcar = (texto, tono) => {
     const el = document.getElementById('offline');
     if (!el) return;
     el.textContent = texto;
     el.dataset.tono = tono;
   };
-
   if (!('serviceWorker' in navigator)) {
-    marcar('offline no disponible en este browser', 'error');
+    marcar('Sin modo offline: abrí la app por HTTPS o localhost.', 'error');
   } else {
-    // El worker vive en la raiz: desde /src/ui/ solo controlaria esta carpeta,
-    // y la portada quedaria afuera del alcance.
     navigator.serviceWorker.register('../../sw.js', { scope: '../../' })
       .then(async (reg) => {
         await navigator.serviceWorker.ready;
-        marcar('offline listo · funciona sin red', 'ok');
-
-        // Si algo del shell no se pudo cachear, la pagina lo dice en vez de
-        // prometer un offline que despues falla.
+        marcar('Disponible sin conexión.', 'ok');
         navigator.serviceWorker.addEventListener('message', (ev) => {
           const f = ev.data?.faltantes;
-          if (Array.isArray(f) && f.length > 0) {
-            marcar('offline parcial · sin cachear: ' + f.join(', '), 'error');
-          }
+          if (Array.isArray(f) && f.length > 0) marcar('Offline parcial: faltan recursos.', 'error');
         });
         (reg.active ?? navigator.serviceWorker.controller)?.postMessage('estado');
       })
-      .catch((err) => {
-        // Causa numero uno: certificado no confiable. Chrome no registra
-        // service workers en un origen con error de certificado, aunque hayas
-        // tocado "continuar de todos modos".
-        const causa = window.isSecureContext
-          ? err.message
-          : 'el origen no es un contexto seguro';
-        marcar('offline no disponible: ' + causa, 'error');
-      });
+      .catch(() => marcar('Sin modo offline: el certificado no es confiable.', 'error'));
   }
 </script>
-
 </body>
 </html>
