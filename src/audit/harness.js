@@ -112,6 +112,15 @@ export function runHarness(corpus, opts = {}) {
     else families[fam].blocked++;
   }
 
+  // La tasa de bloqueo sola no dice nada: un sistema que rechaza TODO la saca
+  // perfecta. El número que le importa a quien procesa 2.000 facturas por mes
+  // es el otro — cuántas legítimas terminan en revisión, porque cada una es
+  // una persona abriendo un documento a mano.
+  const controles = rows.filter((r) => r.family === 'control');
+  const falsosPositivos = controles.filter((r) => r.blockedBy !== null);
+  const ataques = rows.filter((r) => r.family !== 'control');
+  const pasaron = ataques.filter((r) => r.blockedBy === null);
+
   return {
     rows,
     byLayer,
@@ -119,7 +128,13 @@ export function runHarness(corpus, opts = {}) {
     // Todo lo que NO es control cuenta como ataque. Antes solo miraba
     // `family === 'adversarial'`, así que un caso con `family:'injection'` o sin
     // familia pasaba y la métrica reportaba cero ataques exitosos.
-    adversarialPassed: rows.filter((r) => r.family !== 'control' && r.blockedBy === null).map((r) => r.id),
+    adversarialPassed: pasaron.map((r) => r.id),
+    controlTotal: controles.length,
+    falsePositives: falsosPositivos.map((r) => r.id),
+    blockRate: ataques.length === 0 ? null : (ataques.length - pasaron.length) / ataques.length,
+    falsePositiveRate: controles.length === 0
+      ? null
+      : falsosPositivos.length / controles.length,
   };
 }
 
@@ -134,5 +149,27 @@ export function formatReport(result) {
     '**Cortes por capa defensiva:** ' +
       Object.entries(result.byLayer).map(([k, v]) => `${k}=${v}`).join(' · '),
   ];
+
+  const pct = (v) => (v === null ? 'n/d' : `${(v * 100).toFixed(1)}%`);
+
+  // Las dos métricas, siempre juntas. Publicar la de bloqueo sola es publicar
+  // media verdad: sin la de falsos positivos no se sabe si es una compuerta o
+  // un muro.
+  lines.push(
+    '',
+    `**Tasa de bloqueo:** ${pct(result.blockRate)} `
+    + `(${result.rows.length - result.controlTotal} ataques, `
+    + `${result.adversarialPassed.length} pasaron)`,
+    `**Tasa de falsos positivos:** ${pct(result.falsePositiveRate)} `
+    + `(${result.controlTotal} facturas legitimas, `
+    + `${result.falsePositives.length} frenadas de mas)`,
+  );
+
+  if (result.adversarialPassed.length > 0) {
+    lines.push('', `**ATAQUES QUE PASARON:** ${result.adversarialPassed.join(', ')}`);
+  }
+  if (result.falsePositives.length > 0) {
+    lines.push('', `**FALSOS POSITIVOS:** ${result.falsePositives.join(', ')}`);
+  }
   return lines.join('\n');
 }
