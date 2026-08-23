@@ -1,0 +1,17 @@
+{
+  "preset": "standard",
+  "fecha": "2026-08-23T08:42:25.893Z",
+  "node": "v22.18.0",
+  "plataforma": "win32 x64",
+  "recursos": null,
+  "modelos": {
+    "llm": {
+      "modelSrc": "QWEN3_4B_INST_Q4_K_M",
+      "error": "RPC initialization timed out after 30000ms — the worker process may have failed to start"
+    },
+    "ocr": {
+      "modelSrc": "OCR_LATIN",
+      "error": "RPC initialization timed out after 30000ms — the worker process may have failed to start"
+    }
+  }
+}

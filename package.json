@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Auditoría air-gapped de facturas: transporte óptico QR + conciliación local con QVAC.",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "node --test 'test/*.test.js'",
     "test:model": "node --test 'test-model/*.test.js'",
@@ -15,6 +17,8 @@
     "qrcode": "^1.5.4"
   },
   "optionalDependencies": {
+    "@qvac/llm-llamacpp": "^0.39.4",
+    "@qvac/ocr-ggml": "^0.13.1",
     "@qvac/sdk": "^0.17.1"
   }
 }
