@@ -109,3 +109,48 @@ test('hashCorto no revienta con entradas raras', () => {
   assert.equal(hashCorto('a'.repeat(64)), 'aaaaaaaa…aaaaaaaa');
   for (const v of [null, undefined, '', 'corto', 123]) assert.equal(hashCorto(v), '—');
 });
+
+// ---------------------------------------------------------------------------
+// El receptor tiene que saber que un informe de CNC no es un dictamen de
+// factura. Si los confunde, en un demo de CNC aparece la palabra "factura".
+// ---------------------------------------------------------------------------
+
+const { isPreflightReport, renderPreflight } = await import('../src/ui/receiver.js');
+
+test('un informe de pre-flight se reconoce, y un dictamen de factura no', () => {
+  assert.equal(isPreflightReport(informeC), true);
+  assert.equal(isPreflightReport(informeB), true);
+
+  const factura = JSON.parse(readFileSync('fixtures/verdict-pass.json', 'utf8'));
+  assert.equal(isPreflightReport(factura), false, 'confundio una factura con un pre-flight');
+
+  for (const v of [null, undefined, {}, [], 'texto', { veredicto: 'nope', checks: [] }]) {
+    assert.equal(isPreflightReport(v), false);
+  }
+});
+
+test('renderPreflight habla de CNC, nunca de facturas', () => {
+  const vista = renderPreflight(informeB);
+
+  assert.equal(vista.verdict, 'block');
+  assert.equal(vista.tone, 'error');
+  assert.equal(vista.rows.length, informeB.checks.length);
+  assert.ok(vista.failedCount > 0);
+
+  const texto = JSON.stringify(vista).toLowerCase();
+  for (const prohibida of ['factura', 'invoice', 'iva', 'proveedor', 'bancar']) {
+    assert.ok(!texto.includes(prohibida), `la vista de CNC dice "${prohibida}"`);
+  }
+
+  // Y las etiquetas son legibles, no ids crudos.
+  for (const fila of vista.rows) {
+    assert.ok(fila.label.length > 0);
+    assert.notEqual(fila.label, fila.id, `${fila.id} muestra el id crudo`);
+  }
+});
+
+test('renderPreflight rechaza lo que no es un informe', () => {
+  for (const v of [null, {}, { veredicto: 'approve' }]) {
+    assert.throws(() => renderPreflight(v), /pre-flight/i);
+  }
+});

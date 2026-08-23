@@ -11136,6 +11136,61 @@ ${message}` : base.detail,
     message
   };
 }
+var ETIQUETAS_PREFLIGHT = {
+  revision_matches: "La revisi\xF3n del programa es la que pide la orden",
+  part_number_matches: "El programa es de esta pieza",
+  program_number_matches: "El n\xFAmero de programa coincide",
+  tools_in_setup: "Todas las herramientas est\xE1n en el carrusel",
+  work_offset_matches: "El offset de trabajo es el del setup",
+  spindle_within_limit: "Las RPM est\xE1n dentro del l\xEDmite",
+  feed_within_limit: "El avance est\xE1 dentro del l\xEDmite",
+  machine_matches: "El programa es para esta m\xE1quina",
+  program_has_end: "El programa declara su fin",
+  gcode_parses_clean: "El G-code no tiene anomal\xEDas"
+};
+var ESTADOS_PREFLIGHT = {
+  approve: { title: "Listo para enviar", tone: "ok" },
+  review: { title: "Requiere revisi\xF3n", tone: "warn" },
+  block: { title: "Bloqueado", tone: "error" }
+};
+function isPreflightReport(v) {
+  return !!v && typeof v === "object" && !Array.isArray(v) && typeof v.veredicto === "string" && Object.hasOwn(ESTADOS_PREFLIGHT, v.veredicto) && Array.isArray(v.checks);
+}
+function renderPreflight(informe) {
+  if (!isPreflightReport(informe)) {
+    throw new TypeError("renderPreflight espera un informe de pre-flight");
+  }
+  const estado = ESTADOS_PREFLIGHT[informe.veredicto];
+  const job = informe.job ?? {};
+  const rows = informe.checks.map((c) => ({
+    id: c.id,
+    label: Object.hasOwn(ETIQUETAS_PREFLIGHT, c.id) ? ETIQUETAS_PREFLIGHT[c.id] : c.id,
+    ok: c.ok === true,
+    tone: c.ok === true ? "ok" : "error",
+    expected: c.expected,
+    actual: c.actual,
+    evidence: []
+  }));
+  return {
+    verdict: informe.veredicto,
+    title: estado.title,
+    tone: estado.tone,
+    summary: `Orden ${job.workOrder ?? "\u2014"} \xB7 pieza ${job.partNumber ?? "\u2014"} rev ${job.revision ?? "\u2014"} \xB7 ${job.machine ?? "\u2014"}`,
+    rows,
+    ungrounded: (informe.ungrounded ?? []).map((u) => ({
+      key: u.key,
+      label: u.key,
+      value: u.value,
+      reason: u.reason ?? "el modelo no pudo se\xF1alarlo en los documentos",
+      tone: "warn"
+    })),
+    failedCount: rows.filter((r) => !r.ok).length,
+    passedCount: rows.filter((r) => r.ok).length,
+    ungroundedCount: (informe.ungrounded ?? []).length,
+    matched: null,
+    matchLabel: Array.isArray(informe.motivos) && informe.motivos.length > 0 ? informe.motivos.join(" \xB7 ") : "sin observaciones"
+  };
+}
 function diagnoseCamera(entorno) {
   const { isSecureContext, navigator: nav, location } = entorno ?? {};
   const host = location?.hostname ?? "";
@@ -11221,8 +11276,8 @@ function mount(doc = globalThis.document) {
     detalle.textContent = vista.detail;
     panel.append(titulo, detalle);
   }
-  function pintarDictamen(verdict) {
-    const vista = renderVerdict(verdict);
+  function pintarDictamen(informe) {
+    const vista = isPreflightReport(informe) ? renderPreflight(informe) : renderVerdict(informe);
     panel.hidden = false;
     panel.dataset.tono = vista.tone;
     panel.innerHTML = "";
@@ -11451,9 +11506,9 @@ ${describeEnvironment(globalThis)}`
     }
     try {
       pintarDictamen(contenido);
-      setEstado("dictamen cargado", "ok");
+      setEstado("informe cargado", "ok");
     } catch (err) {
-      setEstado("ese archivo no es un dictamen", "error");
+      setEstado("ese archivo no es un informe v\xE1lido", "error");
       pintarFallo({
         stage: "verdict",
         code: FAILURE_CODES.malformedExtraction,
@@ -11478,7 +11533,9 @@ ${describeEnvironment(globalThis)}`
 export {
   diagnoseCamera,
   downloadName,
+  isPreflightReport,
   mount,
   renderFailure,
+  renderPreflight,
   renderVerdict
 };

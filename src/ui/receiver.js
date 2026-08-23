@@ -187,6 +187,83 @@ export function renderFailure(failure) {
   };
 }
 
+/** Nombres legibles de los checks de pre-flight de CNC. */
+const ETIQUETAS_PREFLIGHT = {
+  revision_matches: 'La revisión del programa es la que pide la orden',
+  part_number_matches: 'El programa es de esta pieza',
+  program_number_matches: 'El número de programa coincide',
+  tools_in_setup: 'Todas las herramientas están en el carrusel',
+  work_offset_matches: 'El offset de trabajo es el del setup',
+  spindle_within_limit: 'Las RPM están dentro del límite',
+  feed_within_limit: 'El avance está dentro del límite',
+  machine_matches: 'El programa es para esta máquina',
+  program_has_end: 'El programa declara su fin',
+  gcode_parses_clean: 'El G-code no tiene anomalías',
+};
+
+const ESTADOS_PREFLIGHT = {
+  approve: { title: 'Listo para enviar', tone: 'ok' },
+  review: { title: 'Requiere revisión', tone: 'warn' },
+  block: { title: 'Bloqueado', tone: 'error' },
+};
+
+/** ¿Este JSON es un informe de pre-flight de CNC y no un dictamen de factura? */
+export function isPreflightReport(v) {
+  return !!v && typeof v === 'object' && !Array.isArray(v)
+    && typeof v.veredicto === 'string'
+    && Object.hasOwn(ESTADOS_PREFLIGHT, v.veredicto)
+    && Array.isArray(v.checks);
+}
+
+/**
+ * Convierte un informe de pre-flight en la estructura que pinta la vista.
+ *
+ * Espeja `renderVerdict` a propósito: la vista no tiene que saber de qué
+ * dominio viene lo que está pintando.
+ *
+ * @param {object} informe
+ */
+export function renderPreflight(informe) {
+  if (!isPreflightReport(informe)) {
+    throw new TypeError('renderPreflight espera un informe de pre-flight');
+  }
+  const estado = ESTADOS_PREFLIGHT[informe.veredicto];
+  const job = informe.job ?? {};
+
+  const rows = informe.checks.map((c) => ({
+    id: c.id,
+    label: Object.hasOwn(ETIQUETAS_PREFLIGHT, c.id) ? ETIQUETAS_PREFLIGHT[c.id] : c.id,
+    ok: c.ok === true,
+    tone: c.ok === true ? 'ok' : 'error',
+    expected: c.expected,
+    actual: c.actual,
+    evidence: [],
+  }));
+
+  return {
+    verdict: informe.veredicto,
+    title: estado.title,
+    tone: estado.tone,
+    summary: `Orden ${job.workOrder ?? '—'} · pieza ${job.partNumber ?? '—'} `
+      + `rev ${job.revision ?? '—'} · ${job.machine ?? '—'}`,
+    rows,
+    ungrounded: (informe.ungrounded ?? []).map((u) => ({
+      key: u.key,
+      label: u.key,
+      value: u.value,
+      reason: u.reason ?? 'el modelo no pudo señalarlo en los documentos',
+      tone: 'warn',
+    })),
+    failedCount: rows.filter((r) => !r.ok).length,
+    passedCount: rows.filter((r) => r.ok).length,
+    ungroundedCount: (informe.ungrounded ?? []).length,
+    matched: null,
+    matchLabel: Array.isArray(informe.motivos) && informe.motivos.length > 0
+      ? informe.motivos.join(' · ')
+      : 'sin observaciones',
+  };
+}
+
 /**
  * Por qué esta página no puede usar la cámara, o `null` si puede.
  *
@@ -332,8 +409,12 @@ export function mount(doc = globalThis.document) {
     panel.append(titulo, detalle);
   }
 
-  function pintarDictamen(verdict) {
-    const vista = renderVerdict(verdict);
+  function pintarDictamen(informe) {
+    // Un informe de pre-flight de CNC y un dictamen de factura son documentos
+    // distintos. La vista es la misma; lo que cambia es cómo se traducen.
+    const vista = isPreflightReport(informe)
+      ? renderPreflight(informe)
+      : renderVerdict(informe);
     panel.hidden = false;
     panel.dataset.tono = vista.tone;
     panel.innerHTML = '';
@@ -621,9 +702,9 @@ export function mount(doc = globalThis.document) {
 
     try {
       pintarDictamen(contenido);
-      setEstado('dictamen cargado', 'ok');
+      setEstado('informe cargado', 'ok');
     } catch (err) {
-      setEstado('ese archivo no es un dictamen', 'error');
+      setEstado('ese archivo no es un informe válido', 'error');
       pintarFallo({
         stage: 'verdict',
         code: FAILURE_CODES.malformedExtraction,

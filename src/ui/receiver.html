@@ -47,13 +47,13 @@
     <a class="descarga" id="descarga" hidden download>Guardar</a>
 
     <div>
-      <span class="micro">Dictamen de la auditoría</span>
+      <span class="micro">Informe de pre-flight (opcional)</span>
       <input type="file" id="verdicto" accept=".json,application/json">
       <p class="nota" style="margin-top:10px;border:0;padding:0">
-        La auditoría corre en Node, no acá: el motor de inferencia y el ledger
-        de duplicados viven en la máquina que audita. Cargá el
-        <code>runs/&lt;docId&gt;/verdict.json</code> que escribe
-        <code>bin/audit.mjs</code> y el dictamen se ve con su evidencia al lado.
+        El pre-flight corre en la laptop del técnico, no acá: el modelo y los
+        documentos de taller viven de ese lado. Cargá el informe que escribe
+        <code>bin/preflight.mjs</code> para ver qué se verificó antes de que
+        este archivo cruzara.
       </p>
     </div>
 
