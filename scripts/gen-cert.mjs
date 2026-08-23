@@ -28,10 +28,21 @@ const openssl = (args) =>
 
 mkdirSync(DIR, { recursive: true });
 
-const ips = Object.values(networkInterfaces())
-  .flat()
-  .filter((i) => i?.family === 'IPv4' && !i.internal)
-  .map((i) => i.address);
+// IPs actuales, más las que se pasen por argumento.
+//
+// Aceptar extras importa: el router renueva el DHCP y la IP cambia sola, a
+// veces yendo y viniendo entre dos. Un certificado que cubre las dos evita
+// tener que regenerar —y sobre todo evita tener que volver a instalar la CA en
+// el teléfono— cada vez que eso pasa.
+const extras = process.argv.slice(2).filter((a) => /^\d+\.\d+\.\d+\.\d+$/.test(a));
+
+const ips = [...new Set([
+  ...Object.values(networkInterfaces())
+    .flat()
+    .filter((i) => i?.family === 'IPv4' && !i.internal)
+    .map((i) => i.address),
+  ...extras,
+])];
 
 const san = [
   'DNS:localhost',
