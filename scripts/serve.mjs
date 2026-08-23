@@ -43,7 +43,19 @@ const TIPOS = {
   '.jpg': 'image/jpeg',
   '.bin': 'application/octet-stream',
   '.csv': 'text/csv; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+  // Android reconoce este tipo y ofrece instalar el certificado.
+  '.crt': 'application/x-x509-ca-cert',
 };
+
+/**
+ * Lo que este servidor no entrega nunca.
+ *
+ * `certs/` tiene la clave privada de la CA al lado del certificado publico que
+ * si hay que poder bajar. Servir el directorio entero dejaria la clave a
+ * disposicion de cualquiera en la red.
+ */
+const PROHIBIDO = /\.(key|pem|csr|srl)$/i;
 
 function manejar(req, res) {
   const url = new URL(req.url, 'http://x');
@@ -51,8 +63,9 @@ function manejar(req, res) {
 
   // Sin esto, `..` en la URL sirve cualquier archivo del disco.
   const destino = join(RAIZ, normalize(pedido).replace(/^(\.\.[/\\])+/, ''));
-  if (!destino.startsWith(RAIZ)) {
-    res.writeHead(403).end('403');
+  if (!destino.startsWith(RAIZ) || PROHIBIDO.test(destino)) {
+    res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8' });
+    res.end('403');
     return;
   }
 
