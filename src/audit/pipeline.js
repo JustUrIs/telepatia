@@ -137,7 +137,12 @@ export async function runPipeline(input) {
     verdict = await clock.time('verdict', () => buildVerdict({
       checks, ungrounded, matched,
       invoiceNumber: grounded.invoiceNumber?.value,
-      docId, ledgerPath, persist: false,   // se persiste al final, ya enriquecido
+      docId, ledgerPath,
+      // El artefacto lo escribe este archivo al final, ya enriquecido. El
+      // registro en el ledger, en cambio, tiene que pasar acá: si no, el check
+      // de duplicado no se dispara nunca por el camino del pipeline.
+      persist: false,
+      persistLedger: persist,
     }));
   } catch (err) {
     const stage = STAGES.find((st) => clock.entries.get(st)?.status === 'error') ?? 'verdict';

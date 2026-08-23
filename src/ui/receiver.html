@@ -46,6 +46,17 @@
 
     <a class="descarga" id="descarga" hidden download>Guardar</a>
 
+    <div>
+      <span class="micro">Dictamen de la auditoría</span>
+      <input type="file" id="verdicto" accept=".json,application/json">
+      <p class="nota" style="margin-top:10px;border:0;padding:0">
+        La auditoría corre en Node, no acá: el motor de inferencia y el ledger
+        de duplicados viven en la máquina que audita. Cargá el
+        <code>runs/&lt;docId&gt;/verdict.json</code> que escribe
+        <code>bin/audit.mjs</code> y el dictamen se ve con su evidencia al lado.
+      </p>
+    </div>
+
     <p class="nota">
       El documento se da por bueno solo si el SHA-256 de lo reconstruido
       coincide con el que declaró el emisor. Un frame perdido por ventana lo

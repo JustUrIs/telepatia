@@ -10207,6 +10207,9 @@ var docIdHex = (docId) => {
   return docId.toString(16).padStart(8, "0");
 };
 var runPaths = (docId) => {
+  if (typeof docId === "string") {
+    if (!/^[0-9a-f]{8}$/.test(docId)) throw new TypeError(`docId inv\xE1lido: ${JSON.stringify(docId)}`);
+  }
   const hex = typeof docId === "string" ? docId : docIdHex(docId);
   return {
     dir: `runs/${hex}`,
@@ -11424,6 +11427,39 @@ ${describeEnvironment(globalThis)}`
     botonCamara.textContent = "Detener";
     setEstado("escaneando \xB7 apunt\xE1 al c\xF3digo del emisor", "escaneando");
     globalThis.requestAnimationFrame(bucle);
+  });
+  const entradaVeredicto = $("verdicto");
+  entradaVeredicto?.addEventListener("change", async () => {
+    const file = entradaVeredicto.files?.[0];
+    if (!file) return;
+    let contenido;
+    try {
+      contenido = JSON.parse(await file.text());
+    } catch (err) {
+      setEstado("el dictamen no es JSON v\xE1lido", "error");
+      pintarFallo({
+        stage: "verdict",
+        code: FAILURE_CODES.malformedExtraction,
+        message: `${file.name}: ${err.message}`
+      });
+      return;
+    }
+    if (contenido?.failure) {
+      setEstado("la auditor\xEDa se cort\xF3", "error");
+      pintarFallo(contenido.failure);
+      return;
+    }
+    try {
+      pintarDictamen(contenido);
+      setEstado("dictamen cargado", "ok");
+    } catch (err) {
+      setEstado("ese archivo no es un dictamen", "error");
+      pintarFallo({
+        stage: "verdict",
+        code: FAILURE_CODES.malformedExtraction,
+        message: `${file.name}: ${err.message}`
+      });
+    }
   });
   const diag = $("diagnostico");
   if (diag) diag.textContent = describeEnvironment(globalThis);

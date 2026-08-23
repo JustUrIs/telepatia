@@ -590,6 +590,48 @@ export function mount(doc = globalThis.document) {
     globalThis.requestAnimationFrame(bucle);
   });
 
+  // --- cargar el dictamen que produjo la auditoría en Node ------------------
+
+  const entradaVeredicto = $('verdicto');
+
+  entradaVeredicto?.addEventListener('change', async () => {
+    const file = entradaVeredicto.files?.[0];
+    if (!file) return;
+
+    let contenido;
+    try {
+      contenido = JSON.parse(await file.text());
+    } catch (err) {
+      setEstado('el dictamen no es JSON válido', 'error');
+      pintarFallo({
+        stage: 'verdict',
+        code: FAILURE_CODES.malformedExtraction,
+        message: `${file.name}: ${err.message}`,
+      });
+      return;
+    }
+
+    // `bin/audit.mjs` escribe `{verdict:null, failure}` cuando el pipeline se
+    // corta: ese archivo también es un resultado y hay que poder mostrarlo.
+    if (contenido?.failure) {
+      setEstado('la auditoría se cortó', 'error');
+      pintarFallo(contenido.failure);
+      return;
+    }
+
+    try {
+      pintarDictamen(contenido);
+      setEstado('dictamen cargado', 'ok');
+    } catch (err) {
+      setEstado('ese archivo no es un dictamen', 'error');
+      pintarFallo({
+        stage: 'verdict',
+        code: FAILURE_CODES.malformedExtraction,
+        message: `${file.name}: ${err.message}`,
+      });
+    }
+  });
+
   const diag = $('diagnostico');
   if (diag) diag.textContent = describeEnvironment(globalThis);
 

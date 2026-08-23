@@ -50,9 +50,16 @@ function writeLedger(ledger, path) {
 }
 
 /**
+ * `persist` gobierna el artefacto `runs/<id>/verdict.json`. El registro en el
+ * ledger de duplicados va aparte, en `persistLedger`, porque son dos decisiones
+ * distintas: el pipeline apaga el artefacto (lo escribe él al final, ya
+ * enriquecido con la explicación) pero SÍ tiene que registrar la factura. Con
+ * un solo flag, apagar el artefacto apagaba también el ledger y el check de
+ * duplicado no podía dispararse nunca por el camino del pipeline.
+ *
  * @param {{checks:any[], ungrounded:any[], matched:any, invoiceNumber?:string,
  *          docId?:number|string, ledgerPath?:string, now?:string,
- *          persist?:boolean, explanation?:string|null}} input
+ *          persist?:boolean, persistLedger?:boolean, explanation?:string|null}} input
  * @returns {import('../shared/contract.js').Verdict & {explanation?:string|null}}
  */
 export function buildVerdict(input) {
@@ -61,6 +68,9 @@ export function buildVerdict(input) {
     invoiceNumber, docId, ledgerPath = LEDGER_PATH,
     now = new Date().toISOString(), persist = true, explanation = null,
   } = input ?? {};
+  // Por defecto sigue a `persist`: quien no sepa de esta distinción no cambia
+  // de comportamiento.
+  const persistLedger = input?.persistLedger ?? persist;
 
   if (!Array.isArray(checks)) throw new TypeError('buildVerdict espera checks[]');
   if (!Array.isArray(ungrounded)) throw new TypeError('buildVerdict espera ungrounded[]');
@@ -112,7 +122,7 @@ export function buildVerdict(input) {
 
   // ---- El ledger se toca SOLO si la factura pasó. Una en revisión puede
   // volver legítimamente después de intervención humana.
-  if (persist && verdict === 'pass' && key !== null && key !== '') {
+  if (persistLedger && verdict === 'pass' && key !== null && key !== '') {
     ledger[key] = {
       seenAt: now,
       docId: docId === undefined ? null : (typeof docId === 'string' ? docId : docIdHex(docId)),
