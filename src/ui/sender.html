@@ -88,10 +88,25 @@
   if (!('serviceWorker' in navigator)) {
     marcar('offline no disponible en este browser', 'error');
   } else {
-    navigator.serviceWorker.register('./sw.js', { scope: './' })
-      .then(() => marcar('offline listo · funciona sin red', 'ok'))
+    // El worker vive en la raiz: desde /src/ui/ solo controlaria esta carpeta,
+    // y la portada quedaria afuera del alcance.
+    navigator.serviceWorker.register('../../sw.js', { scope: '../../' })
+      .then(async (reg) => {
+        await navigator.serviceWorker.ready;
+        marcar('offline listo · funciona sin red', 'ok');
+
+        // Si algo del shell no se pudo cachear, la pagina lo dice en vez de
+        // prometer un offline que despues falla.
+        navigator.serviceWorker.addEventListener('message', (ev) => {
+          const f = ev.data?.faltantes;
+          if (Array.isArray(f) && f.length > 0) {
+            marcar('offline parcial · sin cachear: ' + f.join(', '), 'error');
+          }
+        });
+        (reg.active ?? navigator.serviceWorker.controller)?.postMessage('estado');
+      })
       .catch((err) => {
-        // Causa numero uno: certificado autofirmado. Chrome no registra
+        // Causa numero uno: certificado no confiable. Chrome no registra
         // service workers en un origen con error de certificado, aunque hayas
         // tocado "continuar de todos modos".
         const causa = window.isSecureContext
