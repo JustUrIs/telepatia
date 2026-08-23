@@ -13,7 +13,7 @@
 // contenido dinámico, y todo el shell entra en un puñado de archivos — una
 // política más lista solo agregaría formas de fallar.
 
-const VERSION = 'telepatia-v4';
+const VERSION = 'telepatia-v5';
 
 /**
  * Todo lo que hace falta para que las páginas abran sin red.

@@ -285,15 +285,37 @@ export function mount(doc = globalThis.document) {
     estado.dataset.tono = tono;
   };
 
+  /**
+   * Lado máximo al que se escanea.
+   *
+   * jsQR es JS puro y su costo crece con el área: medido, 64 ms por escaneo a
+   * 1280×1280 contra 24 ms a 640×480. Escanear más chico es escanear más veces
+   * por segundo, y en un canal donde cada cuadro perdido cuesta una vuelta
+   * entera del carrusel, la cantidad de intentos importa más que el detalle.
+   *
+   * 720 alcanza de sobra: un QR V40 son 185 módulos con quiet zone, así que
+   * quedan casi 4 píxeles por módulo.
+   */
+  const LADO_ESCANEO = 720;
+
   /** Provider síncrono para `ScanLoop`: un cuadro del video como RGBA. */
   function tomarCuadro() {
-    if (!video.videoWidth || !video.videoHeight) return null;
-    if (lienzo.width !== video.videoWidth) {
-      lienzo.width = video.videoWidth;
-      lienzo.height = video.videoHeight;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    if (!vw || !vh) return null;
+
+    // Nunca se agranda: interpolar píxeles que la cámara no capturó no agrega
+    // información y sí agrega costo.
+    const factor = Math.min(1, LADO_ESCANEO / Math.max(vw, vh));
+    const ancho = Math.max(1, Math.round(vw * factor));
+    const alto = Math.max(1, Math.round(vh * factor));
+
+    if (lienzo.width !== ancho || lienzo.height !== alto) {
+      lienzo.width = ancho;
+      lienzo.height = alto;
     }
-    ctx.drawImage(video, 0, 0, lienzo.width, lienzo.height);
-    const imagen = ctx.getImageData(0, 0, lienzo.width, lienzo.height);
+    ctx.drawImage(video, 0, 0, vw, vh, 0, 0, ancho, alto);
+    const imagen = ctx.getImageData(0, 0, ancho, alto);
     return { rgba: imagen.data, width: imagen.width, height: imagen.height };
   }
 

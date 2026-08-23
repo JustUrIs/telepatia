@@ -627,3 +627,52 @@ button.accion:disabled {
   margin: 0;
   overflow-wrap: anywhere;
 }
+
+/* ------------------------------------------------------------- pestanas */
+
+.pestanas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--linea);
+  border: var(--canal);
+  border-radius: 2px;
+  margin-bottom: 16px;
+}
+
+.pestanas button {
+  background: var(--panel);
+  color: var(--tinta-micro);
+  border: 0;
+  padding: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.pestanas button:hover { color: var(--tinta-baja); }
+
+.pestanas button[aria-selected="true"] {
+  background: var(--panel-alto);
+  color: var(--fosforo);
+  box-shadow: inset 0 -2px 0 var(--fosforo);
+}
+
+textarea#texto {
+  width: 100%;
+  background: var(--chasis);
+  color: var(--tinta);
+  border: var(--canal);
+  border-radius: 2px;
+  padding: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+textarea#texto:focus-visible { outline: 2px solid var(--fosforo); outline-offset: 2px; }
+textarea#texto::placeholder { color: var(--tinta-micro); }

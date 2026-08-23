@@ -2274,6 +2274,42 @@ function describeEnvironment(entorno) {
   return partes.join(" \xB7 ");
 }
 
+// src/ui/raster.js
+var BLANCO = 4294967295;
+var NEGRO = 4278190080;
+var MARGEN = 4;
+function rasterizeMatrix(matrix, margen = MARGEN) {
+  if (!matrix || !Number.isInteger(matrix.size) || matrix.size < 1) {
+    throw new TypeError("matriz inv\xE1lida: se espera {size, data}");
+  }
+  if (matrix.data?.length !== matrix.size * matrix.size) {
+    throw new TypeError(
+      `matriz inconsistente: ${matrix.data?.length} m\xF3dulos para un lado de ${matrix.size}`
+    );
+  }
+  if (!Number.isInteger(margen) || margen < 0) {
+    throw new RangeError(`margen inv\xE1lido: ${margen}`);
+  }
+  const size = matrix.size + 2 * margen;
+  const pixels = new Uint32Array(size * size);
+  pixels.fill(BLANCO);
+  for (let y = 0; y < matrix.size; y++) {
+    const destino = (y + margen) * size + margen;
+    const origen = y * matrix.size;
+    for (let x = 0; x < matrix.size; x++) {
+      if (matrix.data[origen + x]) pixels[destino + x] = NEGRO;
+    }
+  }
+  return { size, pixels };
+}
+function escalaEntera(ladoRaster, anchoLienzo, altoLienzo) {
+  return Math.max(1, Math.floor(Math.min(anchoLienzo, altoLienzo) / ladoRaster));
+}
+function tamanoDisplay(anchoViewport, altoViewport, anchoContenedor) {
+  const presupuestoViewport = 0.9 * Math.min(anchoViewport, altoViewport);
+  return Math.max(1, Math.min(presupuestoViewport, Math.max(1, anchoContenedor)));
+}
+
 // src/ui/sender.js
 var FPS_MAX = 120;
 var FPS_DEFAULT = 10;
@@ -2400,6 +2436,7 @@ function mount(doc = globalThis.document) {
   };
   let plan = null;
   let archivo = null;
+  let matrizUltima = null;
   let nombreArchivo = "";
   let tipoArchivo = "";
   let corriendo = false;
@@ -2409,26 +2446,47 @@ function mount(doc = globalThis.document) {
     estado.textContent = texto;
     estado.dataset.tono = tono;
   };
+  const auxiliar = doc.createElement("canvas");
+  const auxCtx = auxiliar.getContext("2d", { alpha: false });
+  const rasterCache = /* @__PURE__ */ new WeakMap();
+  function rasterDe(matrix) {
+    const guardado = rasterCache.get(matrix);
+    if (guardado) return guardado;
+    const raster = rasterizeMatrix(matrix, MARGEN);
+    rasterCache.set(matrix, raster);
+    return raster;
+  }
   function pintar(matrix) {
-    const lado = matrix.size;
-    const margen = 4;
-    const total = lado + margen * 2;
-    const escala = Math.max(1, Math.floor(Math.min(canvas.width, canvas.height) / total));
-    const pintado = total * escala;
-    const offset = Math.floor((canvas.width - pintado) / 2);
+    const raster = rasterDe(matrix);
+    if (auxiliar.width !== raster.size) {
+      auxiliar.width = raster.size;
+      auxiliar.height = raster.size;
+    }
+    const imagen = auxCtx.createImageData(raster.size, raster.size);
+    new Uint32Array(imagen.data.buffer).set(raster.pixels);
+    auxCtx.putImageData(imagen, 0, 0);
+    const escala = escalaEntera(raster.size, canvas.width, canvas.height);
+    const pintado = raster.size * escala;
+    const ox = Math.floor((canvas.width - pintado) / 2);
+    const oy = Math.floor((canvas.height - pintado) / 2);
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#000000";
-    for (let y = 0; y < lado; y++) {
-      for (let x = 0; x < lado; x++) {
-        if (!matrix.data[y * lado + x]) continue;
-        ctx.fillRect(
-          offset + (x + margen) * escala,
-          offset + (y + margen) * escala,
-          escala,
-          escala
-        );
-      }
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(auxiliar, 0, 0, raster.size, raster.size, ox, oy, pintado, pintado);
+  }
+  function ajustarLienzo() {
+    const lado = Math.round(tamanoDisplay(
+      globalThis.innerWidth ?? 720,
+      globalThis.innerHeight ?? 720,
+      canvas.parentElement?.clientWidth ?? 720
+    ));
+    if (canvas.width === lado) return;
+    canvas.width = lado;
+    canvas.height = lado;
+    if (matrizUltima) pintar(matrizUltima);
+    else {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
   }
   function tick(ahora) {
@@ -2437,6 +2495,7 @@ function mount(doc = globalThis.document) {
     if (ahora - ultimoPintado >= intervalo) {
       ultimoPintado = ahora;
       const frame = nextFrame(plan);
+      matrizUltima = frame.matrix;
       pintar(frame.matrix);
       lecturas.frame.textContent = `${KIND_LABEL[frame.kind]} ${frame.index}`;
       lecturas.lap.textContent = String(frame.lap);
@@ -2485,9 +2544,20 @@ function mount(doc = globalThis.document) {
       setEstado("emisi\xF3n detenida", "idle");
       return;
     }
-    if (!archivo) return;
+    let payload = archivo;
+    if (modoTexto()) {
+      const texto = textoInput.value;
+      if (texto.trim() === "") {
+        setEstado("escrib\xED algo para emitir", "error");
+        return;
+      }
+      payload = new TextEncoder().encode(texto);
+      nombreArchivo = "texto.txt";
+      tipoArchivo = "text/plain";
+    }
+    if (!payload) return;
     try {
-      plan = planEmission(archivo, {
+      plan = planEmission(payload, {
         chunkSize: Number(chunkInput.value),
         fps: Number(fpsInput.value),
         name: nombreArchivo,
@@ -2509,8 +2579,39 @@ function mount(doc = globalThis.document) {
     pedirWakeLock();
     globalThis.requestAnimationFrame(tick);
   });
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const pestanas = [...doc.querySelectorAll("[data-modo]")];
+  const panelArchivo = $("panel-archivo");
+  const panelTexto = $("panel-texto");
+  const textoInput = $("texto");
+  const modoTexto = () => pestanas.find((p) => p.getAttribute("aria-selected") === "true")?.dataset.modo === "texto";
+  function cambiarModo(modo) {
+    for (const p of pestanas) {
+      p.setAttribute("aria-selected", String(p.dataset.modo === modo));
+    }
+    panelArchivo.hidden = modo !== "archivo";
+    panelTexto.hidden = modo !== "texto";
+    if (modo === "texto") {
+      botonEmitir.disabled = textoInput.value.trim() === "";
+      setEstado("escrib\xED o peg\xE1 el texto a emitir");
+    } else {
+      botonEmitir.disabled = archivo === null;
+      setEstado(archivo ? `${nombreArchivo} listo` : "eleg\xED un archivo para empezar");
+    }
+  }
+  for (const p of pestanas) {
+    p.addEventListener("click", () => cambiarModo(p.dataset.modo));
+  }
+  textoInput?.addEventListener("input", () => {
+    if (!modoTexto()) return;
+    const bytes = new TextEncoder().encode(textoInput.value).length;
+    botonEmitir.disabled = bytes === 0;
+    setEstado(
+      bytes === 0 ? "escrib\xED o peg\xE1 el texto a emitir" : `${formatBytes(bytes)} listo`,
+      bytes === 0 ? "idle" : "listo"
+    );
+  });
+  ajustarLienzo();
+  globalThis.addEventListener?.("resize", ajustarLienzo);
   const diag = $("diagnostico");
   if (diag) diag.textContent = describeEnvironment(globalThis);
   setEstado("eleg\xED un archivo para empezar");

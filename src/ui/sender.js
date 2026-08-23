@@ -8,6 +8,7 @@ import { docIdHex } from '../shared/contract.js';
 import { encodeDocument, carousel, cycleFrames, parseFrame, KIND } from '../optical/protocol.js';
 import { create } from './vendor/qrcode-core.js';
 import { describeEnvironment } from './environment.js';
+import { rasterizeMatrix, escalaEntera, tamanoDisplay, MARGEN } from './raster.js';
 
 /** Más de esto no lo sigue ni una cámara de celular, y quema batería al pedo. */
 const FPS_MAX = 120;
@@ -211,6 +212,8 @@ export function mount(doc = globalThis.document) {
 
   /** @type {EmissionPlan|null} */ let plan = null;
   /** @type {Uint8Array|null} */ let archivo = null;
+  /** @type {object|null} Última matriz pintada, para repintar tras un resize. */
+  let matrizUltima = null;
   let nombreArchivo = '';
   let tipoArchivo = '';
   let corriendo = false;
@@ -222,28 +225,65 @@ export function mount(doc = globalThis.document) {
     estado.dataset.tono = tono;
   };
 
+  // El lienzo auxiliar guarda el QR a resolución de módulo: un módulo, un
+  // píxel. Escalarlo después con drawImage y el suavizado apagado es una sola
+  // llamada al contexto por cuadro, contra size² fillRect — a 177 módulos por
+  // lado y 10 fps eso eran 313.000 llamadas por segundo.
+  const auxiliar = doc.createElement('canvas');
+  const auxCtx = auxiliar.getContext('2d', { alpha: false });
+
+  /** El raster de una matriz no cambia nunca: se calcula una sola vez. */
+  const rasterCache = new WeakMap();
+
+  function rasterDe(matrix) {
+    const guardado = rasterCache.get(matrix);
+    if (guardado) return guardado;
+    const raster = rasterizeMatrix(matrix, MARGEN);
+    rasterCache.set(matrix, raster);
+    return raster;
+  }
+
   function pintar(matrix) {
-    const lado = matrix.size;
-    const margen = 4;
-    const total = lado + margen * 2;
-    // Escala entera: un módulo partido en píxeles fraccionarios es la causa
-    // número uno de que la cámara no enganche.
-    const escala = Math.max(1, Math.floor(Math.min(canvas.width, canvas.height) / total));
-    const pintado = total * escala;
-    const offset = Math.floor((canvas.width - pintado) / 2);
+    const raster = rasterDe(matrix);
+
+    if (auxiliar.width !== raster.size) {
+      auxiliar.width = raster.size;
+      auxiliar.height = raster.size;
+    }
+    const imagen = auxCtx.createImageData(raster.size, raster.size);
+    new Uint32Array(imagen.data.buffer).set(raster.pixels);
+    auxCtx.putImageData(imagen, 0, 0);
+
+    // Escala entera: medio píxel de módulo es un borde gris, y un borde gris
+    // es un módulo que la cámara puede leer de las dos formas.
+    const escala = escalaEntera(raster.size, canvas.width, canvas.height);
+    const pintado = raster.size * escala;
+    const ox = Math.floor((canvas.width - pintado) / 2);
+    const oy = Math.floor((canvas.height - pintado) / 2);
 
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#000000';
-    for (let y = 0; y < lado; y++) {
-      for (let x = 0; x < lado; x++) {
-        if (!matrix.data[y * lado + x]) continue;
-        ctx.fillRect(
-          offset + (x + margen) * escala,
-          offset + (y + margen) * escala,
-          escala, escala,
-        );
-      }
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(auxiliar, 0, 0, raster.size, raster.size, ox, oy, pintado, pintado);
+  }
+
+  /** El lienzo sigue al viewport: un QR que no entra en pantalla no se encuadra. */
+  function ajustarLienzo() {
+    const lado = Math.round(tamanoDisplay(
+      globalThis.innerWidth ?? 720,
+      globalThis.innerHeight ?? 720,
+      canvas.parentElement?.clientWidth ?? 720,
+    ));
+    if (canvas.width === lado) return;
+    canvas.width = lado;
+    canvas.height = lado;
+
+    // Redimensionar un canvas lo borra: hay que repintar el cuadro actual, o
+    // la emisión parpadea en blanco cada vez que gira el teléfono.
+    if (matrizUltima) pintar(matrizUltima);
+    else {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
   }
 
@@ -254,6 +294,7 @@ export function mount(doc = globalThis.document) {
     if (ahora - ultimoPintado >= intervalo) {
       ultimoPintado = ahora;
       const frame = nextFrame(plan);
+      matrizUltima = frame.matrix;
       pintar(frame.matrix);
       lecturas.frame.textContent = `${KIND_LABEL[frame.kind]} ${frame.index}`;
       lecturas.lap.textContent = String(frame.lap);
@@ -310,10 +351,23 @@ export function mount(doc = globalThis.document) {
       setEstado('emisión detenida', 'idle');
       return;
     }
-    if (!archivo) return;
+    // En modo texto no hay archivo: el payload se arma al vuelo desde el
+    // textarea, así se puede emitir algo sin tener que guardarlo primero.
+    let payload = archivo;
+    if (modoTexto()) {
+      const texto = textoInput.value;
+      if (texto.trim() === '') {
+        setEstado('escribí algo para emitir', 'error');
+        return;
+      }
+      payload = new TextEncoder().encode(texto);
+      nombreArchivo = 'texto.txt';
+      tipoArchivo = 'text/plain';
+    }
+    if (!payload) return;
 
     try {
-      plan = planEmission(archivo, {
+      plan = planEmission(payload, {
         chunkSize: Number(chunkInput.value),
         fps: Number(fpsInput.value),
         name: nombreArchivo,
@@ -338,10 +392,48 @@ export function mount(doc = globalThis.document) {
     globalThis.requestAnimationFrame(tick);
   });
 
+  // --- modo archivo / modo texto -------------------------------------------
+
+  const pestanas = [...doc.querySelectorAll('[data-modo]')];
+  const panelArchivo = $('panel-archivo');
+  const panelTexto = $('panel-texto');
+  const textoInput = $('texto');
+
+  const modoTexto = () => pestanas.find((p) => p.getAttribute('aria-selected') === 'true')
+    ?.dataset.modo === 'texto';
+
+  function cambiarModo(modo) {
+    for (const p of pestanas) {
+      p.setAttribute('aria-selected', String(p.dataset.modo === modo));
+    }
+    panelArchivo.hidden = modo !== 'archivo';
+    panelTexto.hidden = modo !== 'texto';
+
+    if (modo === 'texto') {
+      botonEmitir.disabled = textoInput.value.trim() === '';
+      setEstado('escribí o pegá el texto a emitir');
+    } else {
+      botonEmitir.disabled = archivo === null;
+      setEstado(archivo ? `${nombreArchivo} listo` : 'elegí un archivo para empezar');
+    }
+  }
+
+  for (const p of pestanas) {
+    p.addEventListener('click', () => cambiarModo(p.dataset.modo));
+  }
+
+  textoInput?.addEventListener('input', () => {
+    if (!modoTexto()) return;
+    const bytes = new TextEncoder().encode(textoInput.value).length;
+    botonEmitir.disabled = bytes === 0;
+    setEstado(bytes === 0 ? 'escribí o pegá el texto a emitir' : `${formatBytes(bytes)} listo`,
+      bytes === 0 ? 'idle' : 'listo');
+  });
+
   // La apertura arranca en blanco, no en negro: un rectángulo negro parece un
   // canvas roto, y además es el fondo contra el que se va a pintar el QR.
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ajustarLienzo();
+  globalThis.addEventListener?.('resize', ajustarLienzo);
 
   const diag = $('diagnostico');
   if (diag) diag.textContent = describeEnvironment(globalThis);

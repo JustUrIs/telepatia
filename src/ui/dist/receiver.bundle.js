@@ -11191,14 +11191,20 @@ function mount(doc = globalThis.document) {
     estado.textContent = texto;
     estado.dataset.tono = tono;
   };
+  const LADO_ESCANEO = 720;
   function tomarCuadro() {
-    if (!video.videoWidth || !video.videoHeight) return null;
-    if (lienzo.width !== video.videoWidth) {
-      lienzo.width = video.videoWidth;
-      lienzo.height = video.videoHeight;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    if (!vw || !vh) return null;
+    const factor = Math.min(1, LADO_ESCANEO / Math.max(vw, vh));
+    const ancho = Math.max(1, Math.round(vw * factor));
+    const alto = Math.max(1, Math.round(vh * factor));
+    if (lienzo.width !== ancho || lienzo.height !== alto) {
+      lienzo.width = ancho;
+      lienzo.height = alto;
     }
-    ctx.drawImage(video, 0, 0, lienzo.width, lienzo.height);
-    const imagen = ctx.getImageData(0, 0, lienzo.width, lienzo.height);
+    ctx.drawImage(video, 0, 0, vw, vh, 0, 0, ancho, alto);
+    const imagen = ctx.getImageData(0, 0, ancho, alto);
     return { rgba: imagen.data, width: imagen.width, height: imagen.height };
   }
   function pintarFallo(failure2) {
