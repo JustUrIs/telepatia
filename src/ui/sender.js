@@ -596,7 +596,12 @@ export function mount(doc = globalThis.document) {
         throw new Error('no se pudieron abrir los archivos de ejemplo');
       }
 
-      archivo = new Uint8Array(await respuestaPrograma.arrayBuffer());
+      // El repo fija LF para que la huella del ejemplo sea igual en Windows,
+      // macOS y Linux. Normalizar solo este fixture evita que un checkout viejo
+      // con CRLF rompa la prueba de un clic; los archivos propios siguen siendo
+      // validados byte a byte, sin tocarlos.
+      const textoPrograma = await respuestaPrograma.text();
+      archivo = new TextEncoder().encode(textoPrograma.replace(/\r\n/g, '\n'));
       informePre = await respuestaInforme.json();
       nombreArchivo = demo.nombre;
       tipoArchivo = 'text/plain';

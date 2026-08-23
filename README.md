@@ -145,7 +145,7 @@ git clone https://github.com/JustUrIs/telepatia
 cd telepatia
 npm install
 node scripts/pull-models.mjs --preset standard   # ~2,6 GB, una sola vez
-node --test "test/*.test.js"                     # 384 tests
+node --test "test/*.test.js"                     # 389 tests
 ```
 
 Requiere **Node ≥ 22**. Sin cuentas, sin API keys, sin variables de entorno.
@@ -200,7 +200,7 @@ controlador que explotar del otro lado, y no hay canal de vuelta.
 ## Tests
 
 ```
-384 tests · 0 fallos · ~1 s
+389 tests · 0 fallos · ~1 s
 ```
 
 Incluye un dominio anterior completo (conciliación de facturas contra extracto

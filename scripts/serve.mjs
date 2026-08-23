@@ -3,8 +3,8 @@
 //   node scripts/serve.mjs
 //
 // Levanta dos puertos sobre la raíz del repo:
-//   http://<ip>:8777    para el emisor (no necesita nada especial)
-//   https://<ip>:8443   para el receptor
+//   http://localhost:8777   prueba rápida en esta computadora
+//   https://<ip>:8443      emisor y receptor en cualquier dispositivo
 //
 // Por qué el https: `getUserMedia` solo existe en contexto seguro. Sobre
 // `http://192.168.x.x` el browser no muestra el permiso de cámara — falla
@@ -105,8 +105,13 @@ if (existsSync('certs/dev.crt') && existsSync('certs/dev.key')) {
   };
   createHttps(opciones, manejar).listen(PUERTO_HTTPS, '0.0.0.0', () => {
     console.log(`https → https://localhost:${PUERTO_HTTPS}`);
-    for (const ip of ips) console.log(`        https://${ip}:${PUERTO_HTTPS}   ← el receptor va acá`);
+    for (const ip of ips) {
+      console.log(`        https://${ip}:${PUERTO_HTTPS}   ← abrí esta dirección en ambos equipos`);
+    }
   });
 } else {
-  console.log('https → sin certificado en certs/. La cámara solo va a andar en localhost.');
+  console.log('https → falta preparar el certificado. Ejecutá primero: npm run demo:setup');
+  for (const ip of ips) {
+    console.log(`        después abrí http://${ip}:${PUERTO_HTTP}/certs/telepatia-ca.crt en el teléfono`);
+  }
 }
