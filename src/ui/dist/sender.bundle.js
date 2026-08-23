@@ -2326,7 +2326,7 @@ function validateApproval(informe, bytes) {
   if (!formaValida(informe)) {
     return {
       ok: false,
-      reason: "Ese JSON no fue creado por Telepat\xEDa: le falta el resultado o la huella del archivo.",
+      reason: "el informe no tiene la forma de un pre-flight de telepat\xEDa",
       resumen: null
     };
   }
@@ -2345,18 +2345,18 @@ function validateApproval(informe, bytes) {
     const detalle = resumen.motivos[0] ? `: ${resumen.motivos[0]}` : "";
     return {
       ok: false,
-      reason: informe.veredicto === "block" ? `Telepat\xEDa bloque\xF3 este trabajo${detalle}` : `Telepat\xEDa pidi\xF3 que una persona lo revise${detalle}`,
+      reason: informe.veredicto === "block" ? `el pre-flight BLOQUE\xD3 este trabajo${detalle}` : `el pre-flight lo dej\xF3 en REVISI\xD3N${detalle}`,
       resumen
     };
   }
   if (resumen.esperado !== resumen.real) {
     return {
       ok: false,
-      reason: "Este no es el archivo que fue aprobado. Aunque el nombre se parezca, su contenido cambi\xF3.",
+      reason: "el archivo elegido NO es el que se aprob\xF3: los bytes no coinciden",
       resumen
     };
   }
-  return { ok: true, reason: "El programa coincide exactamente con el que Telepat\xEDa revis\xF3.", resumen };
+  return { ok: true, reason: "bytes exactos verificados contra el informe", resumen };
 }
 var hashCorto = (h) => typeof h === "string" && h.length >= 16 ? `${h.slice(0, 8)}\u2026${h.slice(-8)}` : "\u2014";
 
@@ -2365,23 +2365,6 @@ var FPS_MAX = 120;
 var FPS_DEFAULT = 10;
 var MAX_BYTES = 4 * 1024 * 1024;
 var AVISO_BYTES = 256 * 1024;
-function esProgramaDeMaquina(nombre) {
-  return /\.(?:nc|gcode|tap|cnc)$/i.test(String(nombre ?? "").trim());
-}
-var DEMOS = Object.freeze({
-  aprobado: Object.freeze({
-    programa: "../../fixtures/programs/part-1837-revC.nc",
-    informe: "../../fixtures/programs/part-1837-revC.preflight.json",
-    nombre: "part-1837-revC.nc",
-    etiqueta: "Caso aprobado cargado: revisi\xF3n C y su informe de control."
-  }),
-  bloqueado: Object.freeze({
-    programa: "../../fixtures/programs/part-1837-revB.nc",
-    informe: "../../fixtures/programs/part-1837-revB.preflight.json",
-    nombre: "part-1837-revB.nc",
-    etiqueta: "Caso bloqueado cargado: revisi\xF3n B y su informe de control."
-  })
-});
 function planEmission(fileBytes, opts = {}) {
   const {
     chunkSize,
@@ -2491,11 +2474,6 @@ function mount(doc = globalThis.document) {
   const ctx = canvas.getContext("2d", { alpha: false });
   const botonEmitir = $("emitir");
   const estado = $("estado");
-  const informeInput = $("informe");
-  const recibo = $("recibo");
-  const seleccionDemo = $("seleccion-demo");
-  const botonDemoAprobado = $("demo-aprobado");
-  const botonDemoBloqueado = $("demo-bloqueado");
   const lecturas = {
     doc: $("r-doc"),
     total: $("r-total"),
@@ -2514,7 +2492,6 @@ function mount(doc = globalThis.document) {
   let corriendo = false;
   let ultimoPintado = 0;
   let wakeLock = null;
-  let informePre = null;
   const setEstado = (texto, tono = "idle") => {
     estado.textContent = texto;
     estado.dataset.tono = tono;
@@ -2586,19 +2563,6 @@ function mount(doc = globalThis.document) {
   fileInput.addEventListener("change", async () => {
     const file = fileInput.files?.[0];
     if (!file) return;
-    if (!esProgramaDeMaquina(file.name)) {
-      archivo = null;
-      informePre = null;
-      botonEmitir.disabled = true;
-      recibo.hidden = true;
-      fileInput.value = "";
-      if (seleccionDemo) seleccionDemo.textContent = "Ese archivo no es un programa de m\xE1quina.";
-      setEstado(
-        "Una foto o un JSON no se pueden ejecutar. Eleg\xED un archivo .nc, .gcode, .tap o .cnc.",
-        "error"
-      );
-      return;
-    }
     if (file.size > MAX_BYTES) {
       archivo = null;
       botonEmitir.disabled = true;
@@ -2611,9 +2575,6 @@ function mount(doc = globalThis.document) {
     archivo = new Uint8Array(await file.arrayBuffer());
     nombreArchivo = file.name;
     tipoArchivo = file.type || "application/octet-stream";
-    if (seleccionDemo) seleccionDemo.textContent = `Programa propio: ${nombreArchivo}. Falta su informe de control.`;
-    botonDemoAprobado?.setAttribute("aria-pressed", "false");
-    botonDemoBloqueado?.setAttribute("aria-pressed", "false");
     invalidarPermiso();
     if (archivo.length > AVISO_BYTES) {
       const vuelta = Math.ceil(archivo.length / Number(chunkInput.value)) / Number(fpsInput.value);
@@ -2628,7 +2589,7 @@ function mount(doc = globalThis.document) {
   botonEmitir.addEventListener("click", async () => {
     if (corriendo) {
       corriendo = false;
-      botonEmitir.textContent = "Emitir por luz";
+      botonEmitir.textContent = "Emitir";
       wakeLock?.release?.();
       setEstado("emisi\xF3n detenida", "idle");
       return;
@@ -2702,13 +2663,16 @@ function mount(doc = globalThis.document) {
   });
   ajustarLienzo();
   globalThis.addEventListener?.("resize", ajustarLienzo);
+  const informeInput = $("informe");
+  const recibo = $("recibo");
+  let informePre = null;
   function revisarPermiso() {
     if (modoTexto()) return;
     if (archivo === null || informePre === null) {
       botonEmitir.disabled = true;
       recibo.hidden = true;
       if (archivo !== null && informePre === null) {
-        setEstado("Falta el informe de control creado para este programa.", "idle");
+        setEstado("falta el informe de pre-flight de este programa", "idle");
       }
       return;
     }
@@ -2718,7 +2682,7 @@ function mount(doc = globalThis.document) {
     recibo.dataset.tono = ok ? "ok" : "error";
     recibo.innerHTML = "";
     const titulo = doc.createElement("h3");
-    titulo.textContent = ok ? "APROBADO \xB7 ES EL ARCHIVO CORRECTO" : { approve: "NO COINCIDE", review: "NECESITA REVISI\xD3N", block: "BLOQUEADO" }[resumen?.veredicto] ?? "ESE JSON NO ES UN INFORME";
+    titulo.textContent = ok ? "APROBADO \xB7 bytes exactos verificados" : { approve: "NO COINCIDE", review: "REVISAR", block: "BLOQUEADO" }[resumen?.veredicto] ?? "SIN INFORME V\xC1LIDO";
     const detalle = doc.createElement("p");
     detalle.textContent = reason;
     recibo.append(titulo, detalle);
@@ -2759,7 +2723,7 @@ function mount(doc = globalThis.document) {
   function invalidarPermiso() {
     if (corriendo) {
       corriendo = false;
-      botonEmitir.textContent = "Emitir por luz";
+      botonEmitir.textContent = "Emitir";
       wakeLock?.release?.();
     }
     revisarPermiso();
@@ -2779,49 +2743,14 @@ function mount(doc = globalThis.document) {
     }
     invalidarPermiso();
   });
-  async function cargarDemo(tipo) {
-    const demo = DEMOS[tipo];
-    if (!demo) return;
-    setEstado("Cargando el caso de prueba\u2026");
-    botonEmitir.disabled = true;
-    try {
-      const [respuestaPrograma, respuestaInforme] = await Promise.all([
-        fetch(new URL(demo.programa, globalThis.location.href)),
-        fetch(new URL(demo.informe, globalThis.location.href))
-      ]);
-      if (!respuestaPrograma.ok || !respuestaInforme.ok) {
-        throw new Error("no se pudieron abrir los archivos de ejemplo");
-      }
-      archivo = new Uint8Array(await respuestaPrograma.arrayBuffer());
-      informePre = await respuestaInforme.json();
-      nombreArchivo = demo.nombre;
-      tipoArchivo = "text/plain";
-      fileInput.value = "";
-      informeInput.value = "";
-      cambiarModo("archivo");
-      if (seleccionDemo) seleccionDemo.textContent = demo.etiqueta;
-      botonDemoAprobado?.setAttribute("aria-pressed", String(tipo === "aprobado"));
-      botonDemoBloqueado?.setAttribute("aria-pressed", String(tipo === "bloqueado"));
-      invalidarPermiso();
-    } catch (err) {
-      archivo = null;
-      informePre = null;
-      recibo.hidden = true;
-      setEstado(`No pude cargar el ejemplo: ${err.message}`, "error");
-    }
-  }
-  botonDemoAprobado?.addEventListener("click", () => cargarDemo("aprobado"));
-  botonDemoBloqueado?.addEventListener("click", () => cargarDemo("bloqueado"));
   const diag = $("diagnostico");
   if (diag) diag.textContent = describeEnvironment(globalThis);
-  setEstado("Eleg\xED un caso para empezar.");
+  setEstado("eleg\xED un archivo para empezar");
 }
 export {
   AVISO_BYTES,
-  DEMOS,
   KIND_LABEL,
   MAX_BYTES,
-  esProgramaDeMaquina,
   formatBytes,
   mount,
   nextFrame,

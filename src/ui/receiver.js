@@ -287,51 +287,19 @@ export function diagnoseCamera(entorno) {
   if (!isSecureContext) {
     return {
       code: FAILURE_CODES.cameraUnavailable,
-      title: 'Abrí la dirección segura',
-      detail: `Esta página se abrió desde ${host}${puerto} sin HTTPS. Por seguridad, el teléfono `
-        + 'no le entrega la cámara. Volvé al inicio y entrá por el enlace HTTPS. '
-        + `En esta misma computadora también podés abrir http://localhost${puerto}${ruta}.`,
+      title: 'Esta dirección no puede usar la cámara',
+      detail: 'Los browsers solo dan acceso a la cámara en contexto seguro: '
+        + `https con certificado confiable, o localhost. Estás en "${host}${puerto}", `
+        + 'que no es ninguno de los dos.\n\n'
+        + `Si estás en la misma máquina que el servidor, abrí:\nhttp://localhost${puerto}${ruta}`,
     };
   }
 
   return {
     code: FAILURE_CODES.cameraUnavailable,
-    title: 'Este navegador no entrega la cámara',
-    detail: 'Abrí el enlace en Safari, Chrome, Edge o Firefox, fuera del navegador interno de otra aplicación.',
-  };
-}
-
-/** Convierte los errores crípticos del navegador en una acción concreta. */
-export function explicarErrorCamara(err, entorno = globalThis) {
-  const impedimento = diagnoseCamera(entorno);
-  if (impedimento) return impedimento;
-
-  const nombre = err?.name ?? '';
-  if (nombre === 'NotAllowedError' || nombre === 'PermissionDeniedError') {
-    return {
-      code: FAILURE_CODES.cameraUnavailable,
-      title: 'La cámara está bloqueada',
-      detail: 'Tocá el candado de la barra de direcciones, permití Cámara y volvé a intentar.',
-    };
-  }
-  if (nombre === 'NotFoundError' || nombre === 'DevicesNotFoundError') {
-    return {
-      code: FAILURE_CODES.cameraUnavailable,
-      title: 'No encontré una cámara',
-      detail: 'Conectá o habilitá una cámara y volvé a intentar.',
-    };
-  }
-  if (nombre === 'NotReadableError' || nombre === 'TrackStartError') {
-    return {
-      code: FAILURE_CODES.cameraUnavailable,
-      title: 'Otra aplicación está usando la cámara',
-      detail: 'Cerrá Zoom, Meet o la app Cámara y volvé a intentar.',
-    };
-  }
-  return {
-    code: FAILURE_CODES.cameraUnavailable,
-    title: 'No pude abrir la cámara',
-    detail: 'Revisá el permiso de Cámara de este sitio y volvé a intentar.',
+    title: 'Este browser no expone la cámara',
+    detail: 'El origen es seguro pero navigator.mediaDevices no está disponible. '
+      + 'Suele pasar en webviews embebidas y en browsers viejos: probá con Chrome o Safari.',
   };
 }
 
@@ -378,7 +346,6 @@ export function mount(doc = globalThis.document) {
   const descarga = $('descarga');
   const resultado = $('resultado');
   const apertura = $('apertura');
-  const progresoGrande = $('progreso-grande');
 
   const lecturas = {
     doc: $('r-doc'), progreso: $('r-progreso'), frames: $('r-frames'),
@@ -503,7 +470,6 @@ export function mount(doc = globalThis.document) {
   function actualizarLecturas() {
     const stats = loop?.stats ?? { frames: 0, hits: 0 };
     lecturas.progreso.textContent = `${Math.round(decoder.progress * 100)}%`;
-    if (progresoGrande) progresoGrande.textContent = `${Math.round(decoder.progress * 100)}%`;
     lecturas.frames.textContent = String(stats.frames);
     lecturas.hits.textContent = String(stats.hits);
     lecturas.recuperados.textContent = String(decoder.stats.recovered);
@@ -659,26 +625,7 @@ export function mount(doc = globalThis.document) {
   function detenerCamara() {
     for (const pista of stream?.getTracks() ?? []) pista.stop();
     stream = null;
-    botonCamara.textContent = 'Abrir cámara';
-  }
-
-  /** La cámara trasera es ideal en celular; `video:true` rescata webcams sin ese perfil. */
-  async function pedirCamara() {
-    const media = globalThis.navigator?.mediaDevices;
-    if (!media?.getUserMedia) throw new DOMException('cámara no disponible', 'NotSupportedError');
-    try {
-      return await media.getUserMedia({
-        audio: false,
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 1280 } },
-      });
-    } catch (err) {
-      // Un permiso rechazado no se vuelve a pedir. Las restricciones o una
-      // cámara sin perfil "environment" sí merecen un intento básico.
-      if (!['OverconstrainedError', 'ConstraintNotSatisfiedError', 'NotFoundError'].includes(err?.name)) {
-        throw err;
-      }
-      return media.getUserMedia({ audio: false, video: true });
-    }
+    botonCamara.textContent = 'Encender cámara';
   }
 
   botonCamara.addEventListener('click', async () => {
@@ -693,21 +640,24 @@ export function mount(doc = globalThis.document) {
     // puede equivocarse y el browser es la única autoridad sobre si hay cámara.
     // Recién si falla se usa para explicar por qué.
     try {
-      stream = await pedirCamara();
-      video.srcObject = stream;
-      await video.play();
+      stream = await globalThis.navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 1280 } },
+      });
     } catch (err) {
-      for (const pista of stream?.getTracks() ?? []) pista.stop();
-      stream = null;
-      const explicacion = explicarErrorCamara(err, globalThis);
-      setEstado(explicacion.title, 'error');
+      const impedimento = diagnoseCamera(globalThis);
+      setEstado('sin acceso a la cámara', 'error');
       pintarFallo({
         stage: 'scan',
         code: FAILURE_CODES.cameraUnavailable,
-        message: explicacion.detail,
+        message: impedimento
+          ? `${impedimento.detail}\n\n${err.name}: ${err.message}`
+          : `${err.name}: ${err.message}\n\n${describeEnvironment(globalThis)}`,
       });
       return;
     }
+
+    video.srcObject = stream;
+    await video.play();
 
     decoder.reset();
     panel.hidden = true;
@@ -717,7 +667,7 @@ export function mount(doc = globalThis.document) {
     loop = new ScanLoop(tomarCuadro, decoder);
     corriendo = true;
     botonCamara.textContent = 'Detener';
-    setEstado('Cámara lista. Apuntá al código de la otra pantalla.', 'escaneando');
+    setEstado('escaneando · apuntá al código del emisor', 'escaneando');
     globalThis.requestAnimationFrame(bucle);
   });
 
@@ -778,6 +728,6 @@ export function mount(doc = globalThis.document) {
       message: impedimentoInicial.detail,
     });
   } else {
-    setEstado('La cámara está apagada.');
+    setEstado('encendé la cámara para empezar');
   }
 }

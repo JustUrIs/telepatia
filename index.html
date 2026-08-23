@@ -3,62 +3,103 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>telepatía · archivos por luz</title>
+<title>telepatía</title>
 <link rel="stylesheet" href="./src/ui/instrument.css">
-<link rel="manifest" href="./src/ui/manifest.webmanifest">
-<meta name="theme-color" content="#f4f1e9">
-<link rel="apple-touch-icon" href="./src/ui/icon.svg">
-</head>
-<body class="home">
-<main class="portada">
-  <header class="home-marca">
-    <a class="logotipo" href="./">telepatía<span aria-hidden="true">.</span></a>
-    <span class="modelo">AGP1</span>
-  </header>
-  <section class="home-hero">
-    <p class="eyebrow">De una computadora aislada a otra</p>
-    <h1>Pasá un archivo<br><em>por la luz.</em></h1>
-    <p class="home-bajada">Sin pendrive. Sin internet. Sin abrir una puerta de vuelta.</p>
-  </section>
-  <nav class="puertas" aria-label="Elegir función">
-    <a class="puerta" id="ir-emisor" href="./src/ui/sender.html">
-      <span class="paso">01</span>
-      <span><strong>Quiero enviar</strong><small>Elegir y mostrar el archivo</small></span>
-      <span class="flecha" aria-hidden="true">→</span>
-    </a>
-    <a class="puerta puerta-camara" id="ir-receptor" href="./src/ui/receiver.html">
-      <span class="paso">02</span>
-      <span><strong>Quiero recibir</strong><small>Abrir la cámara y apuntar</small></span>
-      <span class="flecha" aria-hidden="true">→</span>
-    </a>
-  </nav>
-  <footer class="home-pie">
-    <span class="pulso" aria-hidden="true"></span>
-    <span id="offline">Preparando uso sin conexión…</span>
-  </footer>
-</main>
-<script type="module">
-  const estado = document.getElementById('offline');
-  const local = ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
-  if (location.protocol === 'http:' && !local) {
-    const base = `https://${location.hostname}:8443`;
-    document.getElementById('ir-emisor').href = `${base}/src/ui/sender.html`;
-    document.getElementById('ir-receptor').href = `${base}/src/ui/receiver.html`;
+<meta name="theme-color" content="#080b0a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23080b0a'/><rect x='3' y='3' width='4' height='4' fill='%2357e2c8'/><rect x='9' y='3' width='4' height='4' fill='%2357e2c8'/><rect x='3' y='9' width='4' height='4' fill='%2357e2c8'/><rect x='10' y='10' width='2' height='2' fill='%2357e2c8'/></svg>">
+<style>
+  .portada {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 32px 20px;
   }
-  if (!('serviceWorker' in navigator)) {
-    estado.textContent = local
-      ? 'Este navegador no permite instalar el modo sin conexión.'
-      : 'Entrá por HTTPS para habilitar cámara y modo sin conexión.';
-  } else {
+  .tarjeta { width: 100%; max-width: 620px; }
+  .tarjeta > .marca { margin-bottom: 26px; }
+  .tesis {
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.6;
+    color: var(--tinta-baja);
+    margin: 0 0 30px;
+  }
+  .tesis strong { color: var(--tinta); font-weight: 400; }
+  .puertas { display: grid; gap: 1px; background: var(--linea); border: var(--canal); }
+  .puerta {
+    display: block;
+    background: var(--panel);
+    padding: 20px 22px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 120ms ease;
+  }
+  .puerta:hover { background: var(--panel-alto); }
+  .puerta h2 {
+    margin: 0 0 5px;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fosforo);
+  }
+  .puerta p { margin: 0; font-size: 13px; color: var(--tinta-baja); }
+  .puerta .req {
+    display: block;
+    margin-top: 8px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--tinta-micro);
+  }
+</style>
+</head>
+<body>
+
+<main class="portada">
+  <div class="tarjeta">
+
+    <header class="marca">
+      <h1>telepatía</h1>
+      <span class="modelo">AGP1</span>
+    </header>
+
+    <p class="tesis">
+      Mover un archivo entre dos aparatos con <strong>una pantalla y una cámara</strong>.
+      Sin red, sin cuenta, sin emparejar nada. El canal es la luz, y va en una
+      sola dirección: lo que sale no puede volver.
+    </p>
+
+    <nav class="puertas">
+      <a class="puerta" href="./src/ui/sender.html">
+        <h2>Emisor →</h2>
+        <p>Elegí un archivo y la pantalla lo emite como un carrusel de códigos.</p>
+        <span class="req">no necesita cámara ni contexto seguro</span>
+      </a>
+
+      <a class="puerta" href="./src/ui/receiver.html">
+        <h2>Receptor ←</h2>
+        <p>Apuntá la cámara al emisor y el archivo se reconstruye acá.</p>
+        <span class="req">necesita https confiable o localhost</span>
+      </a>
+    </nav>
+
+    <p class="nota" style="margin-top:26px">
+      El receptor usa la cámara, y los browsers solo la habilitan en contexto
+      seguro: <code>https</code> con certificado confiable, o <code>localhost</code>.
+      Una IP de LAN por <code>http</code> no alcanza, y Chrome ni siquiera
+      pregunta: muestra los permisos como «bloqueados para proteger tu privacidad».
+    </p>
+
+  </div>
+</main>
+
+<script type="module">
+  // Visitar solo la portada ya deja la app disponible sin red: si el usuario
+  // entra, mira y se va, la proxima vez que abra —sin wifi— tiene que andar.
+  if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js', { scope: './' })
-      .then(async () => {
-        await navigator.serviceWorker.ready;
-        estado.textContent = 'Listo para funcionar sin conexión.';
-      })
-      .catch(() => {
-        estado.textContent = 'Entrá por HTTPS confiable para usarlo sin conexión.';
-      });
+      .catch(() => { /* sin contexto seguro no hay offline, y no es un error que mostrar aca */ });
   }
 </script>
+
 </body>
 </html>

@@ -42,7 +42,7 @@ test('un informe aprobado NO habilita otro archivo', () => {
   // El caso que este control existe para cerrar: aprobar uno y mandar otro.
   const r = validateApproval(informeC, bytesB);
   assert.equal(r.ok, false);
-  assert.match(r.reason, /no es el archivo que fue aprobado/i);
+  assert.match(r.reason, /no es el que se aprob/i);
   assert.notEqual(r.resumen.esperado, r.resumen.real);
 });
 
@@ -52,7 +52,7 @@ test('cambiar UN byte después del pre-flight invalida el permiso', () => {
 
   const r = validateApproval(informeC, tocado);
   assert.equal(r.ok, false);
-  assert.match(r.reason, /su contenido cambi/i);
+  assert.match(r.reason, /bytes no coinciden/i);
 });
 
 test('un espacio al final de una linea tambien invalida', () => {

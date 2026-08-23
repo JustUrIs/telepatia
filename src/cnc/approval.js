@@ -72,7 +72,7 @@ export function validateApproval(informe, bytes) {
   if (!formaValida(informe)) {
     return {
       ok: false,
-      reason: 'Ese JSON no fue creado por Telepatía: le falta el resultado o la huella del archivo.',
+      reason: 'el informe no tiene la forma de un pre-flight de telepatía',
       resumen: null,
     };
   }
@@ -94,8 +94,8 @@ export function validateApproval(informe, bytes) {
     return {
       ok: false,
       reason: informe.veredicto === 'block'
-        ? `Telepatía bloqueó este trabajo${detalle}`
-        : `Telepatía pidió que una persona lo revise${detalle}`,
+        ? `el pre-flight BLOQUEÓ este trabajo${detalle}`
+        : `el pre-flight lo dejó en REVISIÓN${detalle}`,
       resumen,
     };
   }
@@ -103,12 +103,12 @@ export function validateApproval(informe, bytes) {
   if (resumen.esperado !== resumen.real) {
     return {
       ok: false,
-      reason: 'Este no es el archivo que fue aprobado. Aunque el nombre se parezca, su contenido cambió.',
+      reason: 'el archivo elegido NO es el que se aprobó: los bytes no coinciden',
       resumen,
     };
   }
 
-  return { ok: true, reason: 'El programa coincide exactamente con el que Telepatía revisó.', resumen };
+  return { ok: true, reason: 'bytes exactos verificados contra el informe', resumen };
 }
 
 /** Hash abreviado para mostrar en pantalla sin ocupar un renglón entero. */
