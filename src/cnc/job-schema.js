@@ -131,3 +131,26 @@ export const normalizeTool = (v) => {
 /** Normaliza un nombre de máquina para comparar sin castigar el formato. */
 export const normalizeMachine = (v) =>
   String(v ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+/**
+ * Normaliza lo que devolvió el modelo a la forma que usan los checks.
+ *
+ * El modelo contesta la línea entera del setup sheet ("T1: 12 mm end mill, 3
+ * flute carbide"), que es una respuesta correcta a lo que se le preguntó. Pero
+ * el OCR parte ese renglón en varios bloques por el espaciado ancho, así que la
+ * línea completa no ancla contra ninguno.
+ *
+ * La solución no es pedirle otra cosa al modelo: es sacarle el identificador
+ * con un regex. Es el mismo principio que con el G-code — el código extrae lo
+ * que tiene estructura, y `T1` la tiene.
+ *
+ * @param {object} job
+ * @returns {object} copia con `tools` reducido a identificadores
+ */
+export function normalizeJob(job) {
+  const salida = { ...job };
+  if (Array.isArray(job?.tools)) {
+    salida.tools = job.tools.map(normalizeTool).filter(Boolean);
+  }
+  return salida;
+}

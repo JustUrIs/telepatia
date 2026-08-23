@@ -147,7 +147,7 @@ const sameCents = (a, b) => Math.abs(Math.round(a * 100) - Math.round(b * 100)) 
  * Reglas por campo. `labels` null significa que el campo no lleva etiqueta en
  * el documento (un nombre de proveedor va suelto en el encabezado).
  */
-const FIELD_RULES = {
+export const FIELD_RULES = {
   total:         { kind: 'money', labels: /total|importe\s*a\s*pagar|neto\s*a\s*pagar/i },
   subtotal:      { kind: 'money', labels: /sub\s*total|neto|gravado/i },
   taxAmount:     { kind: 'money', labels: /iva|impuesto|tax|percep/i },
@@ -167,10 +167,20 @@ const LINE_ITEM_RULES = {
   amount:      { kind: 'money',  labels: null },
 };
 
-function ruleFor(key) {
-  if (key in FIELD_RULES) return FIELD_RULES[key];
+/**
+ * La tabla de reglas es un parámetro para que otro dominio traiga las suyas sin
+ * mezclarlas acá. El motor de anclaje es genérico; qué significa "anclar el
+ * campo revision" es del dominio.
+ */
+function ruleFor(key, rules = FIELD_RULES) {
+  if (Object.hasOwn(rules, key)) return rules[key];
+
+  // Un array homogéneo comparte la regla de su raíz: `tools.0`, `tools.1`…
+  const arr = /^([A-Za-z]+)\.\d+$/.exec(key);
+  if (arr && Object.hasOwn(rules, arr[1])) return rules[arr[1]];
+
   const m = /^lineItems\.\d+\.(\w+)$/.exec(key);
-  if (m && m[1] in LINE_ITEM_RULES) return LINE_ITEM_RULES[m[1]];
+  if (m && Object.hasOwn(LINE_ITEM_RULES, m[1])) return LINE_ITEM_RULES[m[1]];
   return null;
 }
 
@@ -222,6 +232,16 @@ function blockSupports(rule, value, block) {
       const needle = normalizeText(value);
       return needle.length >= MIN_TEXT_NEEDLE && normalizeText(text).includes(needle);
     }
+    case 'letter': {
+      // Un solo carácter, y por eso no se puede buscar como texto: "C" aparece
+      // dentro de cualquier palabra. Tiene que estar suelto, en un bloque que
+      // además lleve la etiqueta del campo — que para este `kind` es
+      // obligatoria. Es el caso de la revisión de una pieza, donde la
+      // diferencia entre B y C es el lote entero.
+      const want = String(value).trim().toUpperCase();
+      if (want.length !== 1) return false;
+      return new RegExp(`(^|[^A-Z0-9])${want}([^A-Z0-9]|$)`, 'i').test(text.toUpperCase());
+    }
     default:
       return false;
   }
@@ -253,7 +273,7 @@ export function flatten(obj, prefix = '', out = Object.create(null)) {
  * @param {import('../shared/contract.js').OcrBlock[]} blocks
  * @returns {{grounded:object, ungrounded:object[], suspiciousBlocks:object[]}}
  */
-export function groundFields(fields, blocks) {
+export function groundFields(fields, blocks, rules = FIELD_RULES) {
   if (fields === null || typeof fields !== 'object') {
     throw new TypeError('groundFields espera un objeto de campos extraídos');
   }
@@ -271,7 +291,7 @@ export function groundFields(fields, blocks) {
   for (const key of keys) {
     const value = flat[key];
     if (value === null || value === undefined || value === '') continue;
-    const rule = ruleFor(key);
+    const rule = ruleFor(key, rules);
     if (!rule) {
       ungrounded.push({ key, value, reason: 'campo desconocido: no hay regla de anclaje' });
       continue;
