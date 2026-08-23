@@ -1,0 +1,3 @@
+# Los recibos de pre-flight identifican los bytes crudos. Un checkout no puede
+# cambiar esos bytes según el sistema operativo o el informe dejaría de coincidir.
+*.nc text eol=lf
