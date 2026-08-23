@@ -1,0 +1,155 @@
+{
+  "veredicto": "approve",
+  "motivos": [],
+  "job": {
+    "workOrder": "WO-2026-04471",
+    "partNumber": "1837",
+    "revision": "C",
+    "material": "Aluminum 6061-T6",
+    "machine": "HAAS VF-2",
+    "programNumber": "01837",
+    "workOffset": "G54",
+    "tools": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "maxSpindleRpm": 10000,
+    "maxFeedMmMin": 2500
+  },
+  "program": {
+    "tools": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "workOffsets": [
+      "G54"
+    ],
+    "mCodes": [
+      "M6",
+      "M3",
+      "M8",
+      "M9",
+      "M5",
+      "M30"
+    ],
+    "envelope": {
+      "x": {
+        "min": -12.7,
+        "max": 50.8
+      },
+      "y": {
+        "min": 0,
+        "max": 40
+      },
+      "z": {
+        "min": -30,
+        "max": 25
+      }
+    },
+    "maxFeed": 1200,
+    "maxSpindle": 9000,
+    "programNumber": "O1837",
+    "comments": [
+      "PART 1837 REV C",
+      "BRACKET SPINDLE MOUNT - AL 6061-T6",
+      "MACHINE HAAS VF-2",
+      "PROGRAMMER J AGUIRRE 2026-08-21",
+      "T1 12MM END MILL - FACE AND PROFILE",
+      "T2 6MM DRILL - 4 HOLES",
+      "T3 8MM END MILL - POCKET"
+    ],
+    "lineCount": 48,
+    "warnings": [
+      "G91 activa modo incremental; el envelope no es confiable"
+    ]
+  },
+  "checks": [
+    {
+      "id": "revision_matches",
+      "ok": true,
+      "expected": "C",
+      "actual": "C",
+      "evidence": []
+    },
+    {
+      "id": "part_number_matches",
+      "ok": true,
+      "expected": "1837",
+      "actual": "1837",
+      "evidence": []
+    },
+    {
+      "id": "program_number_matches",
+      "ok": true,
+      "expected": "01837",
+      "actual": "O1837",
+      "evidence": []
+    },
+    {
+      "id": "tools_in_setup",
+      "ok": true,
+      "expected": "todas dentro de T1, T2, T3",
+      "actual": "todas presentes",
+      "evidence": [],
+      "missingTools": []
+    },
+    {
+      "id": "work_offset_matches",
+      "ok": true,
+      "expected": "G54",
+      "actual": "G54",
+      "evidence": []
+    },
+    {
+      "id": "spindle_within_limit",
+      "ok": true,
+      "expected": "<= 10000 RPM",
+      "actual": "9000 RPM",
+      "evidence": []
+    },
+    {
+      "id": "feed_within_limit",
+      "ok": true,
+      "expected": "<= 2500 mm/min",
+      "actual": "1200 mm/min",
+      "evidence": []
+    },
+    {
+      "id": "machine_matches",
+      "ok": true,
+      "expected": "HAAS VF-2",
+      "actual": "HAAS VF-2",
+      "evidence": []
+    },
+    {
+      "id": "program_has_end",
+      "ok": true,
+      "expected": "M30 o M99",
+      "actual": "M6, M3, M8, M9, M5, M30",
+      "evidence": []
+    },
+    {
+      "id": "gcode_parses_clean",
+      "ok": true,
+      "expected": "sin anomalías que impidan leer el programa",
+      "actual": "legible",
+      "evidence": [],
+      "warnings": [
+        "G91 activa modo incremental; el envelope no es confiable"
+      ],
+      "graves": []
+    }
+  ],
+  "ungrounded": [],
+  "flojosCriticos": [],
+  "programRevision": "C",
+  "contexto": {
+    "programa": "fixtures/programs/part-1837-revC.nc",
+    "motor": "extracción precargada (fixtures/shop/job-extracted.json)",
+    "hash": "cccc68de7e509df84af78b37155d612fd0238b7b8de791a4eb6928152affe86b",
+    "sourceSha256": "cccc68de7e509df84af78b37155d612fd0238b7b8de791a4eb6928152affe86b",
+    "msModelo": 0
+  }
+}

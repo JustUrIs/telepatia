@@ -676,3 +676,67 @@ textarea#texto {
 
 textarea#texto:focus-visible { outline: 2px solid var(--fosforo); outline-offset: 2px; }
 textarea#texto::placeholder { color: var(--tinta-micro); }
+
+/* ------------------------------------------------------- recibo de permiso */
+
+/* El emisor no habilita por tener un archivo: habilita por tener un informe de
+   pre-flight aprobado CUYOS BYTES coincidan con los del archivo elegido. Este
+   bloque dice cual de las dos cosas falta, y por que. */
+
+.recibo {
+  margin-top: 16px;
+  border: var(--canal);
+  border-left-width: 3px;
+  border-radius: 2px;
+  padding: 14px 16px;
+  background: var(--panel-alto);
+}
+
+.recibo[data-tono="ok"] { border-left-color: var(--ok); }
+.recibo[data-tono="error"] { border-left-color: var(--error); }
+
+.recibo h3 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.recibo[data-tono="ok"] h3 { color: var(--ok); }
+.recibo[data-tono="error"] h3 { color: var(--error); }
+
+.recibo > p {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--tinta-baja);
+}
+
+.recibo-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 11px;
+}
+
+.recibo-meta dt {
+  color: var(--tinta-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.recibo-meta dd {
+  margin: 0;
+  color: var(--tinta);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.recibo-motivos {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--error);
+}

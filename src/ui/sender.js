@@ -9,6 +9,7 @@ import { encodeDocument, carousel, cycleFrames, parseFrame, KIND } from '../opti
 import { create } from './vendor/qrcode-core.js';
 import { describeEnvironment } from './environment.js';
 import { rasterizeMatrix, escalaEntera, tamanoDisplay, MARGEN } from './raster.js';
+import { validateApproval, hashCorto } from '../cnc/approval.js';
 
 /** Más de esto no lo sigue ni una cámara de celular, y quema batería al pedo. */
 const FPS_MAX = 120;
@@ -330,7 +331,8 @@ export function mount(doc = globalThis.document) {
     archivo = new Uint8Array(await file.arrayBuffer());
     nombreArchivo = file.name;
     tipoArchivo = file.type || 'application/octet-stream';
-    botonEmitir.disabled = false;
+    // El archivo por si solo ya no habilita nada: el permiso sale del informe.
+    invalidarPermiso();
 
     if (archivo.length > AVISO_BYTES) {
       const vuelta = Math.ceil(archivo.length / Number(chunkInput.value)) / Number(fpsInput.value);
@@ -413,8 +415,10 @@ export function mount(doc = globalThis.document) {
       botonEmitir.disabled = textoInput.value.trim() === '';
       setEstado('escribí o pegá el texto a emitir');
     } else {
-      botonEmitir.disabled = archivo === null;
-      setEstado(archivo ? `${nombreArchivo} listo` : 'elegí un archivo para empezar');
+      // En modo archivo el permiso NO sale de tener un archivo: sale del informe.
+      recibo.hidden = archivo === null;
+      revisarPermiso();
+      if (archivo === null) setEstado('elegí el programa y su informe de pre-flight');
     }
   }
 
@@ -434,6 +438,108 @@ export function mount(doc = globalThis.document) {
   // canvas roto, y además es el fondo contra el que se va a pintar el QR.
   ajustarLienzo();
   globalThis.addEventListener?.('resize', ajustarLienzo);
+
+  // --- El permiso de emisión ------------------------------------------------
+  //
+  // Un informe aprobado no sirve de nada si el emisor deja mandar otro archivo.
+  // Acá se verifica que los bytes elegidos sean EXACTAMENTE los evaluados.
+  //
+  // No es una firma y no se llama así: el informe es un JSON sin firmar. Cierra
+  // el error humano y el cambio accidental, que es el caso frecuente en un
+  // taller, y nada más que eso.
+
+  const informeInput = $('informe');
+  const recibo = $('recibo');
+  /** @type {object|null} */ let informePre = null;
+
+  /** Recalcula el permiso y deja la UI diciendo la verdad sobre por qué. */
+  function revisarPermiso() {
+    if (modoTexto()) return;
+
+    if (archivo === null || informePre === null) {
+      botonEmitir.disabled = true;
+      recibo.hidden = true;
+      if (archivo !== null && informePre === null) {
+        setEstado('falta el informe de pre-flight de este programa', 'idle');
+      }
+      return;
+    }
+
+    const { ok, reason, resumen } = validateApproval(informePre, archivo);
+    botonEmitir.disabled = !ok;
+
+    recibo.hidden = false;
+    recibo.dataset.tono = ok ? 'ok' : 'error';
+    recibo.innerHTML = '';
+
+    const titulo = doc.createElement('h3');
+    titulo.textContent = ok
+      ? 'APROBADO · bytes exactos verificados'
+      : { approve: 'NO COINCIDE', review: 'REVISAR', block: 'BLOQUEADO' }[resumen?.veredicto] ?? 'SIN INFORME VÁLIDO';
+
+    const detalle = doc.createElement('p');
+    detalle.textContent = reason;
+
+    recibo.append(titulo, detalle);
+
+    if (resumen) {
+      const meta = doc.createElement('dl');
+      meta.className = 'recibo-meta';
+      const filas = [
+        ['Trabajo', resumen.workOrder ?? '—'],
+        ['Pieza / rev', `${resumen.partNumber ?? '—'} · ${resumen.revision ?? '—'}`],
+        ['Archivo', nombreArchivo],
+        ['Bytes esperados', hashCorto(resumen.esperado)],
+        ['Bytes reales', hashCorto(resumen.real)],
+      ];
+      for (const [k, v] of filas) {
+        const dt = doc.createElement('dt');
+        dt.textContent = k;
+        const dd = doc.createElement('dd');
+        dd.textContent = v;
+        meta.append(dt, dd);
+      }
+      recibo.append(meta);
+
+      if (!ok && resumen.motivos.length > 0) {
+        const ul = doc.createElement('ul');
+        ul.className = 'recibo-motivos';
+        for (const m of resumen.motivos.slice(0, 6)) {
+          const li = doc.createElement('li');
+          li.textContent = m;
+          ul.append(li);
+        }
+        recibo.append(ul);
+      }
+    }
+
+    setEstado(
+      ok ? `${nombreArchivo} aprobado · listo para emitir` : reason,
+      ok ? 'listo' : 'error',
+    );
+  }
+
+  /** Cualquier cambio invalida el permiso anterior y corta la emisión. */
+  function invalidarPermiso() {
+    if (corriendo) {
+      corriendo = false;
+      botonEmitir.textContent = 'Emitir';
+      wakeLock?.release?.();
+    }
+    revisarPermiso();
+  }
+
+  informeInput?.addEventListener('change', async () => {
+    const file = informeInput.files?.[0];
+    if (!file) { informePre = null; invalidarPermiso(); return; }
+    try {
+      informePre = JSON.parse(await file.text());
+    } catch {
+      informePre = null;
+      setEstado('el informe no es JSON válido', 'error');
+    }
+    invalidarPermiso();
+  });
 
   const diag = $('diagnostico');
   if (diag) diag.textContent = describeEnvironment(globalThis);

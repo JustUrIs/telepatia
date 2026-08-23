@@ -32,6 +32,7 @@ import { JOB_SCHEMA, validateJob, normalizeJob } from '../src/cnc/job-schema.js'
 import { CNC_FIELD_RULES } from '../src/cnc/ground-rules.js';
 import { groundFields } from '../src/audit/ground.js';
 import { preflight, lowConfidenceFields, CONFIANZA_MINIMA, CAMPOS_CRITICOS } from '../src/cnc/preflight.js';
+import { sourceHash } from '../src/cnc/approval.js';
 
 function parseArgs(argv) {
   const posicionales = [];
@@ -53,7 +54,7 @@ const raiz = (clave) => String(clave).split('.')[0];
  * Lee los documentos de taller con el modelo local, o los saltea.
  *
  * El modelo es OPCIONAL a propósito. Sin él la herramienta sigue verificando el
- * programa y transfiriéndolo firmado; lo que se pierde es la lectura automática
+ * programa y transfiriéndolo con su hash verificado; lo que se pierde es la lectura
  * del papeleo, no la seguridad.
  */
 async function leerDocumentos(flags) {
@@ -139,7 +140,8 @@ function informe(resultado) {
   console.log(barra);
   console.log(`  programa   ${program.lineCount} líneas · ${program.tools.join(', ') || 'sin herramientas'}`
     + ` · ${program.workOffsets.join(', ') || 'sin offset'}`);
-  console.log(`  hash       ${contexto.hash.slice(0, 16)}…`);
+  console.log(`  hash       ${contexto.hash.slice(0, 16)}…  (normalizado)`);
+  console.log(`  bytes      ${contexto.sourceSha256.slice(0, 16)}…  (exactos, es el que valida el emisor)`);
   if (contexto.msModelo > 0) console.log(`  modelo     ${(contexto.msModelo / 1000).toFixed(1)} s`);
   console.log(barra);
 }
@@ -152,9 +154,14 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   const rutaPrograma = posicionales[0];
-  const texto = readFileSync(rutaPrograma, 'utf8');
+  const crudoBytes = readFileSync(rutaPrograma);
+  const texto = crudoBytes.toString('utf8');
   const program = parseGcode(texto);
+  // Dos identidades distintas, y las dos hacen falta:
+  //   hash          normalizado, para que el programa se reconozca aunque cambie de CRLF a LF
+  //   sourceSha256  byte a byte, que es lo que el emisor tiene que poder verificar
   const hash = programHash(texto);
+  const sourceSha256 = sourceHash(crudoBytes);
 
   const { job: crudo, bloques, motor, msModelo } = await leerDocumentos(flags);
 
@@ -206,7 +213,7 @@ export async function main(argv = process.argv.slice(2)) {
     ungrounded,
     flojosCriticos,
     programRevision: extractRevision(program),
-    contexto: { programa: rutaPrograma, motor, hash, msModelo },
+    contexto: { programa: rutaPrograma, motor, hash, sourceSha256, msModelo },
   };
 
   const salida = flags.out ?? `runs/preflight/${hash.slice(0, 8)}.json`;

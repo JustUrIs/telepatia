@@ -164,7 +164,7 @@ node bin/preflight.mjs fixtures/programs/part-1837-revC.nc \
 Códigos de salida: `0` listo · `1` revisar · `2` bloqueado.
 
 **El modelo es opcional a propósito.** Sin él la herramienta sigue parseando el
-programa, verificándolo y transfiriéndolo firmado. Lo que se pierde es la
+programa, verificándolo y transfiriéndolo con su hash verificado. Lo que se pierde es la
 lectura automática del papeleo, no la seguridad. Y corre en la laptop del
 técnico, no en el CNC: un control de 2003 no puede correr un modelo de 4B, y
 nadie quiere un modelo de lenguaje adentro de la base de cómputo confiable de
@@ -195,7 +195,7 @@ controlador que explotar del otro lado, y no hay canal de vuelta.
   que ya se usan; después se actualiza por luz.
 - No reemplaza un data diode. Waterfall (WF FLIP) y Nexor (GuarDiode) ya
   resuelven entrada; la diferencia es que ellos abren una ventana de tiempo y
-  acá se aprueba y se firma **cada artefacto, uno por uno**.
+  acá se aprueba y se registra **cada artefacto, uno por uno**.
 
 ## Tests
 

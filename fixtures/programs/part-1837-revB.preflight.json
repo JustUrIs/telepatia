@@ -1,0 +1,162 @@
+{
+  "veredicto": "block",
+  "motivos": [
+    "La revisión del programa es la que pide la orden: B",
+    "Todas las herramientas están en el carrusel: no están en el setup: T7",
+    "El offset de trabajo es el del setup: G54, G55",
+    "Las RPM están dentro del límite: 11500 RPM",
+    "El avance está dentro del límite: 2800 mm/min"
+  ],
+  "job": {
+    "workOrder": "WO-2026-04471",
+    "partNumber": "1837",
+    "revision": "C",
+    "material": "Aluminum 6061-T6",
+    "machine": "HAAS VF-2",
+    "programNumber": "01837",
+    "workOffset": "G54",
+    "tools": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "maxSpindleRpm": 10000,
+    "maxFeedMmMin": 2500
+  },
+  "program": {
+    "tools": [
+      "T1",
+      "T7"
+    ],
+    "workOffsets": [
+      "G54",
+      "G55"
+    ],
+    "mCodes": [
+      "M6",
+      "M3",
+      "M8",
+      "M9",
+      "M5",
+      "M30"
+    ],
+    "envelope": {
+      "x": {
+        "min": -12.7,
+        "max": 50.8
+      },
+      "y": {
+        "min": 0,
+        "max": 40
+      },
+      "z": {
+        "min": -8,
+        "max": 25
+      }
+    },
+    "maxFeed": 2800,
+    "maxSpindle": 11500,
+    "programNumber": "O1837",
+    "comments": [
+      "PART 1837 REV B",
+      "BRACKET SPINDLE MOUNT - AL 6061-T6",
+      "MACHINE HAAS VF-2",
+      "PROGRAMMER J AGUIRRE 2026-06-03",
+      "T1 12MM END MILL - FACE AND PROFILE",
+      "T7 10MM ROUGHER - POCKET - VER SETUP ANTERIOR"
+    ],
+    "lineCount": 35,
+    "warnings": [
+      "G91 activa modo incremental; el envelope no es confiable"
+    ]
+  },
+  "checks": [
+    {
+      "id": "revision_matches",
+      "ok": false,
+      "expected": "C",
+      "actual": "B",
+      "evidence": []
+    },
+    {
+      "id": "part_number_matches",
+      "ok": true,
+      "expected": "1837",
+      "actual": "1837",
+      "evidence": []
+    },
+    {
+      "id": "program_number_matches",
+      "ok": true,
+      "expected": "01837",
+      "actual": "O1837",
+      "evidence": []
+    },
+    {
+      "id": "tools_in_setup",
+      "ok": false,
+      "expected": "todas dentro de T1, T2, T3",
+      "actual": "no están en el setup: T7",
+      "evidence": [],
+      "missingTools": [
+        "T7"
+      ]
+    },
+    {
+      "id": "work_offset_matches",
+      "ok": false,
+      "expected": "G54",
+      "actual": "G54, G55",
+      "evidence": []
+    },
+    {
+      "id": "spindle_within_limit",
+      "ok": false,
+      "expected": "<= 10000 RPM",
+      "actual": "11500 RPM",
+      "evidence": []
+    },
+    {
+      "id": "feed_within_limit",
+      "ok": false,
+      "expected": "<= 2500 mm/min",
+      "actual": "2800 mm/min",
+      "evidence": []
+    },
+    {
+      "id": "machine_matches",
+      "ok": true,
+      "expected": "HAAS VF-2",
+      "actual": "HAAS VF-2",
+      "evidence": []
+    },
+    {
+      "id": "program_has_end",
+      "ok": true,
+      "expected": "M30 o M99",
+      "actual": "M6, M3, M8, M9, M5, M30",
+      "evidence": []
+    },
+    {
+      "id": "gcode_parses_clean",
+      "ok": true,
+      "expected": "sin anomalías que impidan leer el programa",
+      "actual": "legible",
+      "evidence": [],
+      "warnings": [
+        "G91 activa modo incremental; el envelope no es confiable"
+      ],
+      "graves": []
+    }
+  ],
+  "ungrounded": [],
+  "flojosCriticos": [],
+  "programRevision": "B",
+  "contexto": {
+    "programa": "fixtures/programs/part-1837-revB.nc",
+    "motor": "extracción precargada (fixtures/shop/job-extracted.json)",
+    "hash": "361c18c43d01c81acd2aa160d5cdd5c0530adb970f9c588b0a0ce6e9126b72a2",
+    "sourceSha256": "361c18c43d01c81acd2aa160d5cdd5c0530adb970f9c588b0a0ce6e9126b72a2",
+    "msModelo": 0
+  }
+}

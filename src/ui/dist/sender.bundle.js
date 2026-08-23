@@ -2310,6 +2310,56 @@ function tamanoDisplay(anchoViewport, altoViewport, anchoContenedor) {
   return Math.max(1, Math.min(presupuestoViewport, Math.max(1, anchoContenedor)));
 }
 
+// src/cnc/approval.js
+var VEREDICTOS = ["approve", "review", "block"];
+function sourceHash(datos) {
+  const bytes = typeof datos === "string" ? BufferShim.from(datos, "utf8") : datos;
+  return createHash("sha256").update(bytes).digest("hex");
+}
+function formaValida(informe) {
+  return !!informe && typeof informe === "object" && !Array.isArray(informe) && typeof informe.veredicto === "string" && VEREDICTOS.includes(informe.veredicto) && typeof informe.contexto === "object" && informe.contexto !== null && typeof informe.contexto.sourceSha256 === "string" && /^[0-9a-f]{64}$/.test(informe.contexto.sourceSha256);
+}
+function validateApproval(informe, bytes) {
+  if (!ArrayBuffer.isView(bytes) || bytes.length === 0) {
+    return { ok: false, reason: "no hay archivo seleccionado", resumen: null };
+  }
+  if (!formaValida(informe)) {
+    return {
+      ok: false,
+      reason: "el informe no tiene la forma de un pre-flight de telepat\xEDa",
+      resumen: null
+    };
+  }
+  const job = informe.job ?? {};
+  const resumen = {
+    veredicto: informe.veredicto,
+    workOrder: job.workOrder ?? null,
+    partNumber: job.partNumber ?? null,
+    revision: job.revision ?? null,
+    programa: informe.contexto?.programa ?? null,
+    esperado: informe.contexto.sourceSha256,
+    real: sourceHash(bytes),
+    motivos: Array.isArray(informe.motivos) ? informe.motivos : []
+  };
+  if (informe.veredicto !== "approve") {
+    const detalle = resumen.motivos[0] ? `: ${resumen.motivos[0]}` : "";
+    return {
+      ok: false,
+      reason: informe.veredicto === "block" ? `el pre-flight BLOQUE\xD3 este trabajo${detalle}` : `el pre-flight lo dej\xF3 en REVISI\xD3N${detalle}`,
+      resumen
+    };
+  }
+  if (resumen.esperado !== resumen.real) {
+    return {
+      ok: false,
+      reason: "el archivo elegido NO es el que se aprob\xF3: los bytes no coinciden",
+      resumen
+    };
+  }
+  return { ok: true, reason: "bytes exactos verificados contra el informe", resumen };
+}
+var hashCorto = (h) => typeof h === "string" && h.length >= 16 ? `${h.slice(0, 8)}\u2026${h.slice(-8)}` : "\u2014";
+
 // src/ui/sender.js
 var FPS_MAX = 120;
 var FPS_DEFAULT = 10;
@@ -2525,7 +2575,7 @@ function mount(doc = globalThis.document) {
     archivo = new Uint8Array(await file.arrayBuffer());
     nombreArchivo = file.name;
     tipoArchivo = file.type || "application/octet-stream";
-    botonEmitir.disabled = false;
+    invalidarPermiso();
     if (archivo.length > AVISO_BYTES) {
       const vuelta = Math.ceil(archivo.length / Number(chunkInput.value)) / Number(fpsInput.value);
       setEstado(
@@ -2594,8 +2644,9 @@ function mount(doc = globalThis.document) {
       botonEmitir.disabled = textoInput.value.trim() === "";
       setEstado("escrib\xED o peg\xE1 el texto a emitir");
     } else {
-      botonEmitir.disabled = archivo === null;
-      setEstado(archivo ? `${nombreArchivo} listo` : "eleg\xED un archivo para empezar");
+      recibo.hidden = archivo === null;
+      revisarPermiso();
+      if (archivo === null) setEstado("eleg\xED el programa y su informe de pre-flight");
     }
   }
   for (const p of pestanas) {
@@ -2612,6 +2663,86 @@ function mount(doc = globalThis.document) {
   });
   ajustarLienzo();
   globalThis.addEventListener?.("resize", ajustarLienzo);
+  const informeInput = $("informe");
+  const recibo = $("recibo");
+  let informePre = null;
+  function revisarPermiso() {
+    if (modoTexto()) return;
+    if (archivo === null || informePre === null) {
+      botonEmitir.disabled = true;
+      recibo.hidden = true;
+      if (archivo !== null && informePre === null) {
+        setEstado("falta el informe de pre-flight de este programa", "idle");
+      }
+      return;
+    }
+    const { ok, reason, resumen } = validateApproval(informePre, archivo);
+    botonEmitir.disabled = !ok;
+    recibo.hidden = false;
+    recibo.dataset.tono = ok ? "ok" : "error";
+    recibo.innerHTML = "";
+    const titulo = doc.createElement("h3");
+    titulo.textContent = ok ? "APROBADO \xB7 bytes exactos verificados" : { approve: "NO COINCIDE", review: "REVISAR", block: "BLOQUEADO" }[resumen?.veredicto] ?? "SIN INFORME V\xC1LIDO";
+    const detalle = doc.createElement("p");
+    detalle.textContent = reason;
+    recibo.append(titulo, detalle);
+    if (resumen) {
+      const meta = doc.createElement("dl");
+      meta.className = "recibo-meta";
+      const filas = [
+        ["Trabajo", resumen.workOrder ?? "\u2014"],
+        ["Pieza / rev", `${resumen.partNumber ?? "\u2014"} \xB7 ${resumen.revision ?? "\u2014"}`],
+        ["Archivo", nombreArchivo],
+        ["Bytes esperados", hashCorto(resumen.esperado)],
+        ["Bytes reales", hashCorto(resumen.real)]
+      ];
+      for (const [k, v] of filas) {
+        const dt = doc.createElement("dt");
+        dt.textContent = k;
+        const dd = doc.createElement("dd");
+        dd.textContent = v;
+        meta.append(dt, dd);
+      }
+      recibo.append(meta);
+      if (!ok && resumen.motivos.length > 0) {
+        const ul = doc.createElement("ul");
+        ul.className = "recibo-motivos";
+        for (const m of resumen.motivos.slice(0, 6)) {
+          const li = doc.createElement("li");
+          li.textContent = m;
+          ul.append(li);
+        }
+        recibo.append(ul);
+      }
+    }
+    setEstado(
+      ok ? `${nombreArchivo} aprobado \xB7 listo para emitir` : reason,
+      ok ? "listo" : "error"
+    );
+  }
+  function invalidarPermiso() {
+    if (corriendo) {
+      corriendo = false;
+      botonEmitir.textContent = "Emitir";
+      wakeLock?.release?.();
+    }
+    revisarPermiso();
+  }
+  informeInput?.addEventListener("change", async () => {
+    const file = informeInput.files?.[0];
+    if (!file) {
+      informePre = null;
+      invalidarPermiso();
+      return;
+    }
+    try {
+      informePre = JSON.parse(await file.text());
+    } catch {
+      informePre = null;
+      setEstado("el informe no es JSON v\xE1lido", "error");
+    }
+    invalidarPermiso();
+  });
   const diag = $("diagnostico");
   if (diag) diag.textContent = describeEnvironment(globalThis);
   setEstado("eleg\xED un archivo para empezar");
