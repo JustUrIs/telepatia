@@ -8,8 +8,8 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test 'test/*.test.js'",
-    "test:model": "node --test 'test-model/*.test.js'",
+    "test": "node --test \"test/*.test.js\"",
+    "test:model": "node --test \"test-model/*.test.js\"",
     "test:all": "node --test"
   },
   "dependencies": {
